@@ -1,0 +1,304 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+% Define colors for listings
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Listings style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% Redefine chapter format to have number and title on the same line
+\titleformat{\chapter}
+  {\normalfont\huge\bfseries}
+  {\thechapter.}
+  {1em}
+  {}
+
+% Add some vertical space before the chapter title
+\titlespacing*{\chapter}
+  {0pt}{50pt}{40pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Computación en la Nube}
+\lhead{Práctica 1}
+\cfoot{\thepage}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\huge\bfseries Computación en la Nube\par}
+    \vspace{1cm}
+    {\Large Práctica 1 - Despliegue de Instancias EC2\par}
+    \vspace{2cm}
+    {\Large\itshape Francisco Javier López-Dufour Morales\par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\chapter{Introducción}
+Este informe detalla la realización de una práctica en el ámbito de la computación en la nube, específicamente utilizando los servicios de Amazon Web Services (AWS). La práctica se centra en el despliegue básico de instancias en la nube utilizando el servicio EC2 (Elastic Compute Cloud) de AWS.
+
+\chapter{Objetivos}
+El objetivo principal de esta práctica es proporcionar una primera toma de contacto con los servicios de AWS y aplicar los conocimientos teóricos adquiridos en clase. Específicamente, se busca:
+
+\begin{itemize}
+    \item Desplegar y configurar instancias EC2 en AWS.
+    \item Establecer conexiones SSH seguras entre instancias.
+    \item Configurar un servidor web básico en una instancia EC2.
+    \item Analizar los costos asociados con el despliegue de instancias en la nube.
+\end{itemize}
+
+\chapter{Actividades}
+
+\section{Despliegue de Instancia SSH\_gate}
+Se desplegó una instancia en EC2 accesible por SSH desde el exterior, denominada SSH\_gate. Las características principales de esta instancia son:
+
+\begin{itemize}
+    \item AMI: \texttt{Amazon Linux 2023}
+    \begin{itemize}
+        \item ID: \texttt{ami-0ebfd941bbafe70c6}
+    \end{itemize}
+    \item Instance Type: \texttt{t2.micro}
+    \begin{itemize}
+        \item Family: \texttt{t2}
+        \item vCPU: \texttt{1}
+        \item RAM: \texttt{1 GiB}
+    \end{itemize}
+    \item Key Pair: \texttt{vockey}
+    \item Storage:
+    \begin{itemize}
+        \item Volume: \texttt{8 GiB}
+        \item Type: \texttt{gp3}
+    \end{itemize}
+    \item Network:
+    \begin{itemize}
+        \item VPC: \texttt{default}
+        \item Subnet: \texttt{default}
+        \item Public IP: \texttt{Auto-assign public IP}
+    \end{itemize}
+    \item Security Group:
+    \begin{itemize}
+        \item Name: \texttt{SSH\_gate}
+        \item Description: \texttt{Security group for SSH\_gate}
+        \item Inbound Rules:
+        \begin{itemize}
+            \item Type: \texttt{SSH}
+            \item Port Range: \texttt{22}
+            \item Source: \texttt{0.0.0.0/0} (Anywhere)
+        \end{itemize}
+    \end{itemize}
+\end{itemize}
+
+El proceso de despliegue y conexión se realizó exitosamente, como se muestra en la siguiente imagen:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/ec2_instance_running.png}
+    \caption{EC2 Dashboard. Instancia desplegada.}
+\end{figure}
+
+Comprobamos que la instancia está en ejecución y nos conectamos a ella por SSH.
+
+Ejecutamos el siguiente comando para conectarnos a la instancia y comprobamos que la conexión se estableció correctamente y pudimos acceder a la instancia SSH\_Gate.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/ssh_connection.png}
+    \caption{Conexión SSH. Conexión a la nueva instancia SSH\_gate.}
+\end{figure}
+
+\clearpage
+
+\section{Despliegue de Servidor Web}
+
+Desplegamos una nueva instancia en EC2 que tendrá un servidor web en la que muestra nuestro nombre y afición favorita. Esta máquina solo podrá ser accedida por SSH desde la máquina que desplegamos anteriormente, SSH\_gate.
+
+\subsection{Configuración de la nueva instancia}
+
+Desplegamos una nueva instancia con las siguientes características:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/name_and_labels.png}
+    \caption{Nombre y etiquetas}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/image.png}
+    \caption{AMI de Amazon Linux 2023}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/instance_type.png}
+    \caption{Tipo de instancia: t2.micro}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/key_pair.png}
+    \caption{Par de claves}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/red_and_subnet.png}
+    \caption{Red y subred}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/security_group.png}
+    \caption{Grupo de seguridad}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/add_storage.png}
+    \caption{Almacenamiento}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/instance_running.png}
+    \caption{Instancia en ejecución}
+\end{figure}
+
+\clearpage
+
+\subsection{Configuración del grupo de seguridad}
+
+Para asegurar nuestra instancia y permitir solo el tráfico necesario, configuramos un nuevo grupo de seguridad con las siguientes reglas:
+
+\begin{itemize}
+    \item Nombre: \texttt{MyWebServerSG}
+    \item Descripción: \texttt{Security group for MyWebServer}
+    \item Reglas de entrada:
+    \begin{itemize}
+        \item SSH (Puerto 22): Desde \texttt{172.31.39.183/32} (IP de SSH\_Gate)
+        \item HTTP (Puerto 80): Desde cualquier lugar \texttt{0.0.0.0/0}
+        \item HTTPS (Puerto 443): Desde cualquier lugar \texttt{0.0.0.0/0}
+    \end{itemize}
+\end{itemize}
+
+Esta configuración permite el acceso SSH solo desde nuestra instancia SSH\_gate, mientras que permite el acceso web desde cualquier lugar.
+
+\subsection{Conexión y configuración del servidor web}
+
+Una vez que la instancia está en ejecución, seguimos estos pasos para conectarnos y configurar el servidor web:
+
+\begin{enumerate}
+    \item \textbf{Conexión a la instancia SSH\_gate:}
+    \begin{lstlisting}[language=bash]
+ssh -i "~/.ssh/vockey.pem" ec2-user@ec2-54-87-55-252.compute-1.amazonaws.com
+    \end{lstlisting}
+
+    \item \textbf{Configuración de la clave privada para la nueva instancia:}
+    \begin{lstlisting}[language=bash]
+chmod 400 "~/.ssh/SSH_Gate.pem"
+    \end{lstlisting}
+
+    \item \textbf{Conexión desde SSH\_gate a la nueva instancia MyWebServer\_P1:}
+    \begin{lstlisting}[language=bash]
+[ec2-user@ip-172-31-39-183 .ssh]$ ssh -i "~/.ssh/SSH_Gate.pem" ec2-user@ec2-18-206-188-39.compute-1.amazonaws.com
+    \end{lstlisting}
+
+    \item \textbf{Ejecución del script de configuración del servidor web:}
+    \begin{lstlisting}[language=bash]
+chmod +x setup-web-server.sh 
+./setup-web-server.sh 
+    \end{lstlisting}
+    Este script instala y configura un servidor web Apache, creando una página HTML personalizada con nuestro nombre y afición favorita.
+\end{enumerate}
+
+\subsection{Verificación del funcionamiento del servidor web}
+
+Para comprobar que el servidor web está funcionando correctamente, realizamos los siguientes pasos:
+
+\begin{enumerate}
+    \item Identificamos la IP pública de nuestra instancia: \texttt{18.206.188.39}
+    \item Utilizamos el comando \texttt{curl} para hacer una petición HTTP a nuestro servidor:
+    \begin{lstlisting}[language=bash]
+(base) franciscoj ~ % curl http://18.206.188.39:80
+    \end{lstlisting}
+    \item Verificamos visualmente el resultado en un navegador web:
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\linewidth]{img/web_server.png}
+        \caption{Servidor web funcionando}
+    \end{figure}
+\end{enumerate}
+
+Como se puede observar en la imagen, el servidor web está funcionando correctamente y muestra la página personalizada con nuestro nombre y afición favorita.
+
+\clearpage
+
+\section{Análisis de Costos de las Instancias EC2}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{img/costs.png}
+    \caption{Costos}
+\end{figure}
+
+\textbf{Resumen de la Estimación}
+\begin{itemize}
+    \item Instancia EC2: SSH\_gate
+    \begin{itemize}
+        \item Costo inicial: 0,00 USD
+        \item Costo mensual: 2,99 USD
+    \end{itemize}
+    \item Instancia EC2: MyWebServer
+    \begin{itemize}
+        \item Costo inicial: 0,00 USD
+        \item Costo mensual: 2,99 USD
+    \end{itemize}
+\end{itemize}
+
+El costo mensual total para mantener ambas instancias EC2 es de 5,98 USD, lo que se traduce en un costo anual de 71,76 USD.
+
+\chapter{Conclusiones}
+En conclusión, esta práctica nos ha proporcionado una visión general de los servicios de AWS, centrándonos específicamente en el servicio EC2. Hemos aprendido a desplegar y configurar instancias, establecer conexiones SSH, configurar un servidor web básico y analizar los costos asociados.
+
+\chapter{Referencias}
+\begin{itemize}
+    \item \href{https://aws.amazon.com/ec2/}{AWS EC2}
+    \item \href{https://docs.aws.amazon.com/ec2/index.html}{AWS EC2 User Guide}
+\end{itemize}
+
+\end{document}
