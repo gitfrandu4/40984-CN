@@ -292,8 +292,38 @@ Como se puede observar en la imagen, el servidor web está funcionando correctam
 
 El costo mensual total para mantener ambas instancias EC2 es de 5,98 USD, lo que se traduce en un costo anual de 71,76 USD.
 
+\clearpage
+
+\section{Configuración de Alertas de Monitoreo}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/cloudwatch_overview.png}
+    \caption{CloudWatch Overview}
+\end{figure}
+
+\begin{itemize}
+    \item Navegamos a la consola de \texttt{CloudWatch} en AWS y seleccionamos \texttt{Alarms} en el menú de navegación.
+    \item Hacemos clic en \texttt{Crear alarma} y seleccionamos la métrica que queremos monitorear (por ejemplo, \texttt{EstimatedCharges}). Configuramos los detalles de la alerta, incluyendo el umbral y la frecuencia de evaluación.
+    \item Seleccionamos la acción que queremos que se realice cuando se active la alerta (por ejemplo, enviar un correo electrónico al correo institucional).
+    \item Hacemos clic en \texttt{Crear alarma} para terminar.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\linewidth]{img/alarm.png}
+    \caption{Alerta de monitoreo}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/alarm_details.png}
+    \caption{Alerta de monitoreo (detalles)}
+\end{figure}
+
 \chapter{Conclusiones}
-En conclusión, esta práctica nos ha proporcionado una visión general de los servicios de AWS, centrándonos específicamente en el servicio EC2. Hemos aprendido a desplegar y configurar instancias, establecer conexiones SSH, configurar un servidor web básico y analizar los costos asociados.
+En conclusión, esta práctica nos ha proporcionado una visión general de los servicios de AWS, centrándonos específicamente en el servicio EC2. Hemos aprendido a desplegar y configurar instancias, establecer conexiones SSH, configurar un servidor web básico, analizar los costos asociados con las instancias EC2, y configurar alertas de monitoreo para mantener un control más eficiente sobre el uso y los gastos de los servicios en la nube utilizando CloudWatch.
+
 
 \chapter{Referencias}
 \begin{itemize}
