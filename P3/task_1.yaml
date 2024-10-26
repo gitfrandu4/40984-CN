@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-06b21ccaeff8cd686
+      InstanceType: t2.micro
+      KeyName: vockey
+      SecurityGroups:
+        - !Ref SecurityGroup
+      UserData: !Base64 |
+        #!/bin/bash
+        yum update -y
+        yum install -y httpd  # Install Apache
+        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+        echo "Hello, this is instance $INSTANCE_ID" > /var/www/html/index.html
+        systemctl start httpd  # Start Apache
+        systemctl enable httpd  # Enable Apache to start on boot
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP and SSH access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+Outputs:
+  InstanceId:
+    Value: !Ref Instance
+    Description: Instance ID

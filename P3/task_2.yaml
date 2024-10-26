@@ -1,0 +1,93 @@
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-12345678
+      InstanceType: t2.micro
+      SubnetId: !Ref Subnet
+
+  Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-12345678
+      InstanceType: t2.micro
+      SubnetId: !Ref Subnet
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      Listeners:
+        - InstancePort: '80'
+          LoadBalancerPort: '80'
+          Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:80/
+        HealthyThreshold: 3
+        UnhealthyThreshold: 5
+        Interval: 30
+        Timeout: 5
+      Instances:
+        - !Ref Instance
+        - !Ref Instance2
+      Subnets:
+        - !Ref Subnet
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      ResourceId: !Sub 'service/${AWS::StackName}-instance'
+      ServiceNamespace: ec2
+      ScalableDimension: ec2:instance:DesiredCapacity
+      MinCapacity: 1
+      MaxCapacity: 5
+      RoleARN: arn:aws:iam::123456789012:role/ApplicationAutoScalingRole
+
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+Metadata:
+  AWS::CloudFormation::Designer:
+    LoadBalancer:
+      Position:
+        x: 0
+        y: 100
+    Instance:
+      Position:
+        x: 100
+        y: 200
+    Instance2:
+      Position:
+        x: 200
+        y: 200
+  AWS::Composer::Groups:
+    Group1:
+      Label: Load Balancer & Auto Scaling
+      Members:
+        - LoadBalancer
+        - ScalableTarget
+    Group2:
+      Label: EC2 Instances
+      Members:
+        - Instance
+        - Instance2
