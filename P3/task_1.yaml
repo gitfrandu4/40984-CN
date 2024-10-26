@@ -11,11 +11,11 @@ Resources:
       UserData: !Base64 |
         #!/bin/bash
         yum update -y
-        yum install -y httpd  # Install Apache
-        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-        echo "Hello, this is instance $INSTANCE_ID" > /var/www/html/index.html
-        systemctl start httpd  # Start Apache
-        systemctl enable httpd  # Enable Apache to start on boot
+        yum install -y httpd
+        yum install -y uuid
+        echo "<h1>Instance ID: $(uuid)</h1>" > /var/www/html/index.html
+        systemctl start httpd
+        systemctl enable httpd
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
