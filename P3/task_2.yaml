@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   Instance:
     Type: AWS::EC2::Instance
@@ -57,7 +58,15 @@ Resources:
       MinCapacity: 1
       MaxCapacity: 5
       RoleARN: arn:aws:iam::123456789012:role/ApplicationAutoScalingRole
-
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
   Subnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -87,3 +96,29 @@ Metadata:
       Members:
         - Instance
         - Instance2
+
+Outputs:
+  LoadBalancerDNSName:
+    Value: !GetAtt LoadBalancer.DNSName
+    Description: The DNS name of the load balancer
+  LoadBalancerSecurityGroup:
+    Value: !Ref LoadBalancerSecurityGroup
+    Description: The security group for the load balancer
+  VPC:
+    Value: !Ref VPC
+    Description: The VPC ID
+  Subnet:
+    Value: !Ref Subnet
+    Description: The subnet ID
+  Instance:
+    Value: !Ref Instance
+    Description: The instance ID
+  Instance2:
+    Value: !Ref Instance2
+    Description: The instance ID
+  ScalableTarget:
+    Value: !Ref ScalableTarget
+    Description: The scalable target ARN
+  PublicName:
+    Value: !GetAtt Instance.PublicDnsName
+    Description: The public DNS name of the instance (connect via SSH as ec2-user)
