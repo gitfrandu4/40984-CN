@@ -1,63 +1,78 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
-  Instance:
-    Type: AWS::EC2::Instance
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: ami-06b21ccaeff8cd686
       InstanceType: t2.micro
-      SubnetId: !Ref Subnet
-      UserData: !Base64 |
-              #!/bin/bash
-              yum update -y
-              yum install -y httpd
-              yum install -y uuid
-              echo "<h1>Instance ID: $(uuid)</h1>" > /var/www/html/index.html
-              systemctl start httpd
-              systemctl enable httpd
-  Instance2:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: ami-06b21ccaeff8cd686
-      InstanceType: t2.micro
-      SubnetId: !Ref Subnet
-      UserData: !Base64 |
-              #!/bin/bash
-              yum update -y
-              yum install -y httpd
-              yum install -y uuid
-              echo "<h1>Instance ID: $(uuid)</h1>" > /var/www/html/index.html
-              systemctl start httpd
-              systemctl enable httpd
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
-    Properties:
-      Listeners:
-        - InstancePort: '80'
-          LoadBalancerPort: '80'
-          Protocol: HTTP
-      HealthCheck:
-        Target: HTTP:80/
-        HealthyThreshold: 3
-        UnhealthyThreshold: 5
-        Interval: 30
-        Timeout: 5
-      Instances:
-        - !Ref Instance
-        - !Ref Instance2
-      Subnets:
-        - !Ref Subnet
+      KeyName: vockey
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
+      UserData: !Base64 |
+              #!/bin/bash
+              yum update -y
+              yum install -y httpd
+              yum install -y uuid
+              echo "<h1>Práctica 3 - Task 2</h1>" > /var/www/html/index.html
+              echo "<h2>Instance ID: $(uuid)</h2>" >> /var/www/html/index.html
+              systemctl start httpd
+              systemctl enable httpd
 
-  ScalableTarget:
-    Type: AWS::ApplicationAutoScaling::ScalableTarget
+  LoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      ResourceId: !Sub 'service/${AWS::StackName}-instance'
-      ServiceNamespace: ec2
-      ScalableDimension: ec2:instance:DesiredCapacity
-      MinCapacity: 1
-      MaxCapacity: 5
-      RoleARN: arn:aws:iam::123456789012:role/ApplicationAutoScalingRole
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 5
+      Port: 80
+      Protocol: HTTP
+      TargetType: instance
+      VpcId: !Ref VPC
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LoadBalancerTargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId: !Ref RouteTable
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -67,11 +82,46 @@ Resources:
       Tags:
         - Key: Name
           Value: MyVPC
-  Subnet:
+  
+  Subnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [ 1, !GetAZs '' ]
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: MyLoadBalancer
+      Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Scheme: internet-facing
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MinSize: '2'
+      MaxSize: '3'
+      DesiredCapacity: '2'
+      VPCZoneIdentifier:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      TargetGroupARNs:
+        - !Ref LoadBalancerTargetGroup
 
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -83,42 +133,12 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-
-Metadata:
-  AWS::Composer::Groups:
-    Group1:
-      Label: Load Balancer & Auto Scaling
-      Members:
-        - LoadBalancer
-        - ScalableTarget
-    Group2:
-      Label: EC2 Instances
-      Members:
-        - Instance
-        - Instance2
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
 
 Outputs:
   LoadBalancerDNSName:
     Value: !GetAtt LoadBalancer.DNSName
     Description: The DNS name of the load balancer
-  LoadBalancerSecurityGroup:
-    Value: !Ref LoadBalancerSecurityGroup
-    Description: The security group for the load balancer
-  VPC:
-    Value: !Ref VPC
-    Description: The VPC ID
-  Subnet:
-    Value: !Ref Subnet
-    Description: The subnet ID
-  Instance:
-    Value: !Ref Instance
-    Description: The instance ID
-  Instance2:
-    Value: !Ref Instance2
-    Description: The instance ID
-  ScalableTarget:
-    Value: !Ref ScalableTarget
-    Description: The scalable target ARN
-  PublicName:
-    Value: !GetAtt Instance.PublicDnsName
-    Description: The public DNS name of the instance (connect via SSH as ec2-user)
