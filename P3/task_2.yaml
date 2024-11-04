@@ -1,22 +1,104 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Description: "Template de CloudFormation que incluye dos instancias EC2 con un servidor web, balanceador de carga y un grupo de autoescalado."
+
 Resources:
-  LaunchConfiguration:
-    Type: AWS::AutoScaling::LaunchConfiguration
+
+  # -------------------------------
+  # VPC y Recursos de Red
+  # -------------------------------
+
+  VPC:
+    Type: AWS::EC2::VPC
     Properties:
-      ImageId: ami-06b21ccaeff8cd686
-      InstanceType: t2.micro
-      KeyName: vockey
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs '']
+
+  Subnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [1, !GetAZs '']
+
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet2
+      RouteTableId: !Ref RouteTable
+
+  # -------------------------------
+  # Grupos de Seguridad
+  # -------------------------------
+
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+  # -------------------------------
+  # Recursos del Balanceador de Carga
+  # -------------------------------
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: MyLoadBalancer
+      Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
       SecurityGroups:
         - !Ref LoadBalancerSecurityGroup
-      UserData: !Base64 |
-              #!/bin/bash
-              yum update -y
-              yum install -y httpd
-              yum install -y uuid
-              echo "<h1>Práctica 3 - Task 2</h1>" > /var/www/html/index.html
-              echo "<h2>Instance ID: $(uuid)</h2>" >> /var/www/html/index.html
-              systemctl start httpd
-              systemctl enable httpd
+      Scheme: internet-facing
 
   LoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -41,79 +123,33 @@ Resources:
       Port: 80
       Protocol: HTTP
 
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
+  # -------------------------------
+  # Recursos de EC2 y Auto Scaling
+  # -------------------------------
 
-  VPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      VpcId: !Ref VPC
-      InternetGatewayId: !Ref InternetGateway
-
-  RouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPC
-
-  Route:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
-  SubnetRouteTableAssociation1:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref Subnet1
-      RouteTableId: !Ref RouteTable
-
-  SubnetRouteTableAssociation2:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref Subnet2
-      RouteTableId: !Ref RouteTable
-
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: MyVPC
-  
-  Subnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.1.0/24
-      MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 0, !GetAZs '' ]
-
-  Subnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.2.0/24
-      MapPublicIpOnLaunch: true
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
-
-  LoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Name: MyLoadBalancer
-      Subnets:
-        - !Ref Subnet1
-        - !Ref Subnet2
-      SecurityGroups:
-        - !Ref LoadBalancerSecurityGroup
-      Scheme: internet-facing
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        ImageId: ami-06b21ccaeff8cd686
+        InstanceType: t2.micro
+        KeyName: vockey
+        SecurityGroupIds:
+          - !Ref LoadBalancerSecurityGroup
+        UserData: !Base64 |
+          #!/bin/bash
+          yum update -y
+          yum install -y httpd
+          yum install -y uuid
+          echo "<h1>Práctica 3 - Task 2</h1>" > /var/www/html/index.html
+          echo "<h2>Instance ID: $(uuid)</h2>" >> /var/www/html/index.html
+          systemctl start httpd
+          systemctl enable httpd
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      LaunchConfigurationName: !Ref LaunchConfiguration
       MinSize: '2'
       MaxSize: '3'
       DesiredCapacity: '2'
@@ -122,21 +158,13 @@ Resources:
         - !Ref Subnet2
       TargetGroupARNs:
         - !Ref LoadBalancerTargetGroup
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
 
-  LoadBalancerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Allow HTTP traffic
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
+  # -------------------------------
+  # Salidas
+  # -------------------------------
 
 Outputs:
   LoadBalancerDNSName:
