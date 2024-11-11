@@ -1,0 +1,32 @@
+{
+    "Version": "2012-10-17",
+    "Id": "__default_policy_ID",
+    "Statement": [
+      {
+        "Sid": "__owner_statement",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "arn:aws:iam::491250998585:root"
+        },
+        "Action": "SQS:*",
+        "Resource": "arn:aws:sqs:us-east-1:491250998585:s3rawqueue"
+      },
+      {
+        "Sid": "example-statement-ID",
+        "Effect": "Allow",
+        "Principal": {
+          "Service": "s3.amazonaws.com"
+        },
+        "Action": "SQS:SendMessage",
+        "Resource": "arn:aws:sqs:us-east-1:491250998585:s3rawqueue",
+        "Condition": {
+          "StringEquals": {
+            "aws:SourceAccount": "491250998585"
+          },
+          "ArnLike": {
+            "aws:SourceArn": "arn:aws:s3:::cn-p7bucket"
+          }
+        }
+      }
+    ]
+  }

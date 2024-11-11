@@ -1,0 +1,40 @@
+[
+    {
+      "Name": "datetime",
+      "Type": "timestamp",
+      "Comment": "Timestamp of the demand measurement"
+    },
+    {
+      "Name": "title",
+      "Type": "string",
+      "Comment": "Type of demand (real, programada, prevista)"
+    },
+    {
+      "Name": "value",
+      "Type": "double",
+      "Comment": "Demand value in MW"
+    },
+    {
+      "Name": "percentage",
+      "Type": "double",
+      "Comment": "Percentage value of the demand"
+    },
+    {
+      "Name": "year",
+      "Type": "string",
+      "Comment": "Year partition",
+      "PartitionKey": "Partition (6)"
+    },
+    {
+      "Name": "month",
+      "Type": "string",
+      "Comment": "Month partition",
+      "PartitionKey": "Partition (7)"
+    },
+    {
+      "Name": "day",
+      "Type": "string",
+      "Comment": "Day partition",
+      "PartitionKey": "Partition (8)"
+    }
+  ]
