@@ -5,3 +5,5 @@
 */help.txt
 README.pdf
 .env
+.aws/credentials
+.elasticbeanstalk/config.yml
