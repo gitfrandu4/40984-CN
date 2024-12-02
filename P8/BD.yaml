@@ -1,0 +1,124 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'RDS stack for Node.js product catalog application'
+
+Parameters:
+  DatabaseName:
+    Type: String
+    Default: products
+    Description: Name of the database to create
+  
+  DatabaseUser:
+    Type: String
+    Default: postgres
+    Description: Username for database access
+
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    MinLength: 8
+    Description: Password for database access
+    ConstraintDescription: Must be at least 8 characters
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC where the database will be deployed
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Subnets for the database (minimum 2 for high availability)
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS instance
+      SubnetIds: !Ref SubnetIds
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS instance
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0  # Note: For production, restrict this to your application's security group
+
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      DBName: !Ref DatabaseName
+      Engine: postgres
+      MasterUsername: !Ref DatabaseUser
+      MasterUserPassword: !Ref DatabasePassword
+      DBInstanceClass: db.t3.micro  # Free tier eligible
+      AllocatedStorage: 20
+      MaxAllocatedStorage: 100
+      PubliclyAccessible: true
+      VPCSecurityGroups: 
+        - !GetAtt DBSecurityGroup.GroupId
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      BackupRetentionPeriod: 7
+      MultiAZ: false  # Set to true for production
+      AutoMinorVersionUpgrade: true
+      Tags:
+        - Key: Name
+          Value: ProductCatalogDB
+
+Outputs:
+  # Environment variables for Node.js application
+  DBHost:
+    Description: Database host endpoint
+    Value: !GetAtt RDSInstance.Endpoint.Address
+    Export:
+      Name: !Sub "${AWS::StackName}-DBHost"
+
+  DBPort:
+    Description: Database port
+    Value: !GetAtt RDSInstance.Endpoint.Port
+    Export:
+      Name: !Sub "${AWS::StackName}-DBPort"
+
+  DBName:
+    Description: Database name
+    Value: !Ref DatabaseName
+    Export:
+      Name: !Sub "${AWS::StackName}-DBName"
+
+  DBUser:
+    Description: Database master username
+    Value: !Ref DatabaseUser
+    Export:
+      Name: !Sub "${AWS::StackName}-DBUser"
+
+  # Environmental variables format for different platforms
+  DotEnvFormat:
+    Description: Environment variables in .env format
+    Value: !Sub |
+      DB_HOST=${RDSInstance.Endpoint.Address}
+      DB_PORT=${RDSInstance.Endpoint.Port}
+      DB_NAME=${DatabaseName}
+      DB_USER=${DatabaseUser}
+      DB_PASSWORD=${DatabasePassword}
+
+  EBEnvironmentFormat:
+    Description: Environment variables format for Elastic Beanstalk
+    Value: !Sub |
+      [
+        {"name": "DB_HOST", "value": "${RDSInstance.Endpoint.Address}"},
+        {"name": "DB_PORT", "value": "${RDSInstance.Endpoint.Port}"},
+        {"name": "DB_NAME", "value": "${DatabaseName}"},
+        {"name": "DB_USER", "value": "${DatabaseUser}"},
+        {"name": "DB_PASSWORD", "value": "${DatabasePassword}"}
+      ]
+
+  ExportCommand:
+    Description: Export commands for EC2
+    Value: !Sub |
+      export DB_HOST=${RDSInstance.Endpoint.Address}
+      export DB_PORT=${RDSInstance.Endpoint.Port}
+      export DB_NAME=${DatabaseName}
+      export DB_USER=${DatabaseUser}
+      export DB_PASSWORD=${DatabasePassword}
