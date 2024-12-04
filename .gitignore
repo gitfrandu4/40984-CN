@@ -8,3 +8,4 @@ README.pdf
 .aws/credentials
 .elasticbeanstalk/config.yml
 P8/node_modules
+P8/docu.md
