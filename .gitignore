@@ -7,3 +7,4 @@ README.pdf
 .env
 .aws/credentials
 .elasticbeanstalk/config.yml
+P8/node_modules
