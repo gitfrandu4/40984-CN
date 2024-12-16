@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Description: "Desacoplamiento en tres microservicios con SQS y EC2"
 
 Parameters:
@@ -45,6 +45,35 @@ Resources:
         - Key: Name
           Value: MyVPC
 
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs ""]
+
   ##########################
   # 3. Security Group
   ##########################
@@ -61,15 +90,15 @@ Resources:
         - IpProtocol: tcp
           FromPort: 5001
           ToPort: 5001
-          CidrIp: 0.0.0.0/0  # fA
+          CidrIp: 0.0.0.0/0 # fA
         - IpProtocol: tcp
           FromPort: 5002
           ToPort: 5002
-          CidrIp: 0.0.0.0/0  # fB
+          CidrIp: 0.0.0.0/0 # fB
         - IpProtocol: tcp
           FromPort: 5003
           ToPort: 5003
-          CidrIp: 0.0.0.0/0  # fC
+          CidrIp: 0.0.0.0/0 # fC
 
   ##########################
   # 4. Instancias EC2 (fA, fB, fC)
@@ -79,7 +108,8 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: vockey
-      IamInstanceProfile: "LabRole"
+      SubnetId: !Ref Subnet1
+      # IamInstanceProfile: "LabRole"
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -89,11 +119,11 @@ Resources:
           yum update -y
           yum install -y python3 git
           pip3 install flask boto3
-          
+
           # Exportar variables de entorno
           export QUEUE_A_TO_B_URL=${QueueAtoB}
           export AWS_REGION=us-east-1
-          
+
           # Clonar repositorio o descargar los ficheros fA.py, etc.
           # O sencillamente echo el contenido en un archivo:
           cat << EOF > /home/ec2-user/fA.py
@@ -131,7 +161,8 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: vockey
-      IamInstanceProfile: "LabRole"
+      SubnetId: !Ref Subnet1
+      # IamInstanceProfile: "LabRole"
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -141,7 +172,7 @@ Resources:
           yum update -y
           yum install -y python3 git
           pip3 install boto3
-          
+
           export QUEUE_A_TO_B_URL=${QueueAtoB}
           export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
@@ -195,7 +226,8 @@ Resources:
     Properties:
       InstanceType: !Ref InstanceType
       KeyName: vockey
-      IamInstanceProfile: "LabRole"
+      SubnetId: !Ref Subnet1
+      # IamInstanceProfile: "LabRole"
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -205,7 +237,7 @@ Resources:
           yum update -y
           yum install -y python3 git
           pip3 install boto3
-          
+
           export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
 
