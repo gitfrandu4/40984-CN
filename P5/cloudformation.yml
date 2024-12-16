@@ -74,6 +74,12 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone: !Select [0, !GetAZs ""]
 
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
   ##########################
   # 3. Security Group
   ##########################
@@ -116,16 +122,16 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
+          # Update and install dependencies
           yum update -y
-          yum install -y python3 git
+          yum install -y python3 git python3-pip
           pip3 install flask boto3
 
-          # Exportar variables de entorno
+          # Export environment variables
           export QUEUE_A_TO_B_URL=${QueueAtoB}
           export AWS_REGION=us-east-1
 
-          # Clonar repositorio o descargar los ficheros fA.py, etc.
-          # O sencillamente echo el contenido en un archivo:
+          # Create the Python application
           cat << EOF > /home/ec2-user/fA.py
           import os
           import time
@@ -151,8 +157,12 @@ Resources:
               app.run(host="0.0.0.0", port=5001)
           EOF
 
-          # Ejecutar fA
-          nohup python3 /home/ec2-user/fA.py > /home/ec2-user/fA.log 2>&1 &
+          # Ensure log file location exists and set permissions
+          sudo touch /var/log/fa_service.log
+          sudo chmod 644 /var/log/fa_service.log
+
+          # Start the Python application and log output
+          sudo nohup python3 /home/ec2-user/fA.py > /var/log/fa_service.log 2>&1 &
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fA"
 
@@ -169,14 +179,17 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
+          # Update and install dependencies
           yum update -y
-          yum install -y python3 git
+          yum install -y python3 git python3-pip
           pip3 install boto3
 
+          # Export environment variables
           export QUEUE_A_TO_B_URL=${QueueAtoB}
           export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
 
+          # Create the Python application
           cat << EOF > /home/ec2-user/fB.py
           import os
           import time
@@ -217,7 +230,13 @@ Resources:
               main_loop()
           EOF
 
-          nohup python3 /home/ec2-user/fB.py > /home/ec2-user/fB.log 2>&1 &
+          # Ensure log file location exists and set permissions
+          sudo touch /var/log/fb_service.log
+          sudo chmod 644 /var/log/fb_service
+
+          # Start the Python application and log output
+          sudo nohup python3 /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
+
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fB"
 
@@ -234,13 +253,16 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
+          # Update and install dependencies
           yum update -y
-          yum install -y python3 git
+          yum install -y python3 git python3-pip
           pip3 install boto3
 
+          # Export environment variables
           export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
 
+          # Create the Python application
           cat << EOF > /home/ec2-user/fC.py
           import os
           import time
@@ -276,7 +298,13 @@ Resources:
               main_loop()
           EOF
 
-          nohup python3 /home/ec2-user/fC.py > /home/ec2-user/fC.log 2>&1 &
+          # Ensure log file location exists and set permissions
+          sudo touch /var/log/fc_service.log
+          sudo chmod 644 /var/log/fc_service.log
+
+          # Start the Python application and log output
+          sudo nohup python3 /home/ec2-user/fC.py > /var/log/fc_service.log 2>&1 &
+
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fC"
 
