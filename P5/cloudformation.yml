@@ -14,25 +14,12 @@ Parameters:
 
 Resources:
   ##########################
-  # 1. Colas SQS
-  ##########################
-  QueueAtoB:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: "QueueAtoB"
-
-  QueueBtoC:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: "QueueBtoC"
-
-  ##########################
-  # 2. Rol IAM para EC2 con permisos SQS
+  # 1. Rol IAM para EC2 con permisos SQS
   # Usaremos el rol por defecto "LabRole"
   ##########################
 
   ##########################
-  # VPC y Recursos de Red
+  # 2. VPC y Recursos de Red
   ##########################
 
   VPC:
@@ -115,7 +102,7 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: vockey
       SubnetId: !Ref Subnet1
-      # IamInstanceProfile: "LabRole"
+      IamInstanceProfile: LabInstanceProfile
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -127,9 +114,13 @@ Resources:
           yum install -y python3 git python3-pip
           pip3 install flask boto3
 
-          # Export environment variables
-          export QUEUE_A_TO_B_URL=${QueueAtoB}
+          # Export environment variables in the current shell
+          export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"
           export AWS_REGION=us-east-1
+
+          # Add them to /etc/profile for future sessions
+          echo 'export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"' >> /etc/profile
+          echo 'export AWS_REGION=us-east-1' >> /etc/profile
 
           # Create the Python application
           cat << EOF > /home/ec2-user/fA.py
@@ -162,7 +153,7 @@ Resources:
           sudo chmod 644 /var/log/fa_service.log
 
           # Start the Python application and log output
-          sudo nohup python3 /home/ec2-user/fA.py > /var/log/fa_service.log 2>&1 &
+          nohup python3 /home/ec2-user/fA.py > /var/log/fa_service.log 2>&1 &
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fA"
 
@@ -172,7 +163,7 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: vockey
       SubnetId: !Ref Subnet1
-      # IamInstanceProfile: "LabRole"
+      IamInstanceProfile: LabInstanceProfile
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -184,10 +175,15 @@ Resources:
           yum install -y python3 git python3-pip
           pip3 install boto3
 
-          # Export environment variables
-          export QUEUE_A_TO_B_URL=${QueueAtoB}
-          export QUEUE_B_TO_C_URL=${QueueBtoC}
+          # Export environment variables in the current shell
+          export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"
+          export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"
           export AWS_REGION=us-east-1
+
+          # Add them to /etc/profile for future sessions
+          echo 'export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"' >> /etc/profile
+          echo 'export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"' >> /etc/profile
+          echo 'export AWS_REGION=us-east-1' >> /etc/profile
 
           # Create the Python application
           cat << EOF > /home/ec2-user/fB.py
@@ -235,7 +231,7 @@ Resources:
           sudo chmod 644 /var/log/fb_service
 
           # Start the Python application and log output
-          sudo nohup python3 /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
+          nohup python3 /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
 
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fB"
@@ -246,7 +242,7 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName: vockey
       SubnetId: !Ref Subnet1
-      # IamInstanceProfile: "LabRole"
+      IamInstanceProfile: LabInstanceProfile
       SecurityGroupIds:
         - !GetAtt MicroservicesSecurityGroup.GroupId
       ImageId: ami-06b21ccaeff8cd686
@@ -258,11 +254,15 @@ Resources:
           yum install -y python3 git python3-pip
           pip3 install boto3
 
-          # Export environment variables
-          export QUEUE_B_TO_C_URL=${QueueBtoC}
+          # Export environment variables in the current shell
+          export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"
           export AWS_REGION=us-east-1
 
-          # Create the Python application
+          # Add them to /etc/profile for future sessions
+          echo 'export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"' >> /etc/profile
+          echo 'export AWS_REGION=us-east-1' >> /etc/profile
+
+          # Create the Python application 
           cat << EOF > /home/ec2-user/fC.py
           import os
           import time
@@ -303,20 +303,12 @@ Resources:
           sudo chmod 644 /var/log/fc_service.log
 
           # Start the Python application and log output
-          sudo nohup python3 /home/ec2-user/fC.py > /var/log/fc_service.log 2>&1 &
+          nohup python3 /home/ec2-user/fC.py > /var/log/fc_service.log 2>&1 &
 
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fC"
 
 Outputs:
-  QueueAtoBUrl:
-    Description: URL de la cola A->B
-    Value: !Ref QueueAtoB
-
-  QueueBtoCUrl:
-    Description: URL de la cola B->C
-    Value: !Ref QueueBtoC
-
   fAInstanceID:
     Description: Instancia que corre microservicio fA
     Value: !Ref EC2fA
