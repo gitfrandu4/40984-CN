@@ -242,7 +242,7 @@ Resources:
 
           # Ensure log file location exists and set permissions
           sudo touch /var/log/fb_service.log
-          sudo chmod 644 /var/log/fb_service
+          sudo chmod 644 /var/log/fb_service.log
 
           # Start the Python application and log output
           nohup python3 /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
