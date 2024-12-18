@@ -82,9 +82,11 @@ Comienzo de la ejecución monolítica con w = Inicio:
 Resultado final del flujo: Inicio:ABC
 ```
 
+---
+
 ### 3.2. Desacoplamiento en tres microservicios y uso de colas
 
-**Objetivo**: Crear **tres aplicaciones independientes** (`fA`, `fB`, `fC`) y conectarlas mediante **colas SQS** para que la salida de una sea la entrada de la siguiente.
+> **Objetivo**: Crear **tres aplicaciones independientes** (`fA`, `fB`, `fC`) y conectarlas mediante **colas SQS** para que la salida de una sea la entrada de la siguiente.
 
 #### 3.2.1. Creación de las colas SQS
 
@@ -101,7 +103,7 @@ Resultado final del flujo: Inicio:ABC
      - **Quién puede enviar mensajes**: solo el propietario de la cola
      - **Quién puede recibir mensajes**: solo el propietario de la cola
    - Mantenemos el resto de opciones por defecto.
-   - URL de la cola: `https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB`
+   - URL de la cola: `https://sqs.{region}.amazonaws.com/{account-id}/QueueAtoB`
 
 <img src="img/queueAtoB.png" width="600">
 
@@ -118,13 +120,11 @@ Resultado final del flujo: Inicio:ABC
      - **Quién puede enviar mensajes**: solo el propietario de la cola
      - **Quién puede recibir mensajes**: solo el propietario de la cola
    - Mantenemos el de opciones por defecto.
-   - URL de la cola: `https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC`
+   - URL de la cola: `https://sqs.{region}.amazonaws.com/{account-id}/QueueBtoC`
 
 <img src="img/queueBtoC.png" width="600">
 
 **NOTA**: este paso lo vamos a realizar de nuevo pero integrado en la plantilla de CloudFormation.
-
-<br>
 
 #### 3.2.2. Creación de los tres microservicios
 
@@ -142,7 +142,7 @@ El código de cada microservicio se encuentra en los anexos: [Anexo B](#anexo-b-
 
 Se utilizó una plantilla de CloudFormation para: 
 
-1. Crear la infraestructura (VPC, Subnet, Security Group) necesaria para las instancias EC2.
+1. Crear la infraestructura (VPC, Subnet, Security Group, ...) necesaria para las instancias EC2.
 2. Desplegar tres instancias EC2 con scripts de inicio (`UserData`) que instalan las dependencias, definen variables de entorno y ejecutan cada microservicio.
 3. Crear las colas SQS (`QueueAtoB` y `QueueBtoC`).
 
@@ -171,7 +171,7 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
 
 ### 3.3. Configuración de Amazon SNS y suscripción de fA
 
-**Objetivo**: Permitir que `fA` reciba datos de entrada desde un **Topic** de Amazon SNS. De esta forma, en lugar de iniciar el flujo enviando una petición HTTP manual a `fA`, cualquier evento o publicación en el **Topic SNS** desencadenará la ejecución del flujo en `fA`.
+> **Objetivo**: Permitir que `fA` reciba datos de entrada desde un **Topic** de Amazon SNS. De esta forma, en lugar de iniciar el flujo enviando una petición HTTP manual a `fA`, cualquier evento o publicación en el **Topic SNS** desencadenará la ejecución del flujo en `fA`.
 
 **Pasos a seguir**:
 
