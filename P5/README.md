@@ -29,9 +29,11 @@
       - [3.2.2. Creación de los tres microservicios](#322-creación-de-los-tres-microservicios)
       - [3.2.3. Despliegue de los microservicios en EC2 mediante CloudFormation](#323-despliegue-de-los-microservicios-en-ec2-mediante-cloudformation)
     - [3.3. Configuración de Amazon SNS y suscripción de fA](#33-configuración-de-amazon-sns-y-suscripción-de-fa)
-  - [4. Conclusiones](#4-conclusiones)
+  - [4. Diagrama de la Arquitectura Desplegada](#4-diagrama-de-la-arquitectura-desplegada)
+  - [5. Presupuesto y Estimación de Costos](#5-presupuesto-y-estimación-de-costos)
+  - [6. Conclusiones](#6-conclusiones)
   - [5. Referencias](#5-referencias)
-  - [6. Anexos](#6-anexos)
+  - [7. Anexos](#7-anexos)
     - [Anexo A: Código de las funciones monolíticas](#anexo-a-código-de-las-funciones-monolíticas)
     - [Anexo B: Código de las funciones desacopladas](#anexo-b-código-de-las-funciones-desacopladas)
     - [Anexo C: Plantilla de CloudFormation](#anexo-c-plantilla-de-cloudformation)
@@ -222,8 +224,44 @@ El código de la plantilla CloudFormation con SNS se encuentra en el [Anexo D](#
 
 <div class="page"/>
 
+## 4. Diagrama de la Arquitectura Desplegada
 
-## 4. Conclusiones
+El siguiente diagrama muestra la arquitectura desplegada en AWS:
+
+<img src="img/arquitectura_desacoplada.png" width="800">
+
+En este diseño, cada microservicio (`fA`, `fB`, `fC`) se ejecuta en una instancia EC2 independiente. Los microservicios se comunican entre sí mediante colas SQS (`QueueAtoB`, `QueueBtoC`), lo que permite un desacoplamiento total entre ellos. Además, `fA` recibe datos de entrada desde un Topic SNS, lo que añade flexibilidad y escalabilidad al sistema.
+
+## 5. Presupuesto y Estimación de Costos
+
+Para la estimación de costos, se consideran los siguientes elementos:
+
+- **Instancias EC2**: se desplegaron tres instancias EC2 (una por microservicio) con el tipo `t2.micro`.
+- **Colas SQS**: se crearon dos colas `SQS` para el desacoplamiento de los microservicios.
+- **Tráfico de red**: se considera el tráfico de red entre las instancias EC2 y las colas SQS.
+- **Amazon SNS**: se creó un Topic SNS con una suscripción HTTP.
+- **Almacenamiento EBS**: se incluye el almacenamiento de las instancias EC2.
+- **Transferencia de datos**: se considera el tráfico de datos entre los servicios.
+- **CloudFormation**: se considera el uso de CloudFormation para la creación de la infraestructura.
+- **Región**: se utilizó la región `us-east-1` (N. Virginia).
+- **Precio**: se consideran los precios de AWS en la región `us-east-1` al momento de la práctica.
+- **Duración**: se considera un mes de uso continuo de los servicios.
+- **Costos**: se presentan los costos estimados en dólares americanos.
+
+**Costos Estimados**
+
+| Servicio                                    | Costo Mensual (USD) | Costo Anual (USD)     |
+|---------------------------------------------|---------------------|-----------------------|
+| Instancias EC2 (3 x t2.micro)               | $12.70              | $152.40               |
+| Colas SQS (2 x 1M mensajes)                 | $0.00               | $0.00                 |
+| Tráfico de red (EC2 a SQS)                  | $0.00               | $0.00                 |
+| Amazon SNS (1 x Topic)                      | $0.00               | $0.00                 |
+| Almacenamiento EBS (3 x 8GB)                | $0.72               | $8.64                 |
+| Transferencia de datos (1GB)                | $0.00               | $0.00                 |
+| CloudFormation (1 stack)                    | $0.00               | $0.00                 |
+| **Total**                                   | **$13.42**          | **$161.04**           |
+
+## 6. Conclusiones
 
 - La arquitectura desacoplada implementada en esta práctica demuestra cómo servicios como **Amazon SQS** y **Amazon SNS** pueden mejorar la escalabilidad, tolerancia a fallos y modularidad de una aplicación.
 
@@ -240,12 +278,11 @@ El código de la plantilla CloudFormation con SNS se encuentra en el [Anexo D](#
 1. [AWS Docs - Ejemplos en GitHub](https://github.com/awsdocs/aws-doc-sdk-examples)
 2. [AWS SQS Documentation](https://docs.aws.amazon.com/sqs/)
 3. [AWS SNS Documentation](https://docs.aws.amazon.com/sns/)
-4. [Microservices Best Practices](https://docs.aws.amazon.com/whitepapers/latest/microservices-on-aws/introducing-microservices.html)
-5. [CloudFormation o Terraform (si aplica)](#)
+4. [AWS CloudFormation Documentation](https://docs.aws.amazon.com/cloudformation/)
 
 <div class="page"/>
 
-## 6. Anexos
+## 7. Anexos
 
 ### Anexo A: Código de las funciones monolíticas
 
