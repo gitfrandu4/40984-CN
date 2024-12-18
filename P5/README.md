@@ -88,7 +88,7 @@ Resultado final del flujo: Inicio:ABC
 
 #### 3.2.1. Creación de las colas SQS
 
-1. **Creación de la cola A->B** (`QueueAtoB`):
+1. **Creación de la cola A→B** (`QueueAtoB`):
    - **Nombre**: `QueueAtoB`
    - **Configuración**:
      - **Tiempo de retención**: 1 minuto
@@ -105,7 +105,7 @@ Resultado final del flujo: Inicio:ABC
 
 <img src="img/queueAtoB.png" width="600">
 
-2. **Creación de la cola B->C** (`QueueBtoC`):
+2. **Creación de la cola B→C** (`QueueBtoC`):
    - **Nombre**: `QueueBtoC`
    - **Configuración**:
      - **Tiempo de retención**: 1 minuto
