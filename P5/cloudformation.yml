@@ -14,8 +14,22 @@ Parameters:
 
 Resources:
   ##########################
-  # 1. Rol IAM para EC2 con permisos SQS
-  # Usaremos el rol por defecto "LabRole"
+  # 1. Colas SQS
+  ##########################
+  QueueAtoB:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "QueueAtoB"
+
+  QueueBtoC:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: "QueueBtoC"
+  ##########################
+    
+  ##########################
+  # 2. Rol IAM para EC2 con permisos SQS
+  # Usaremos el rol por defecto "LabRole" que ya tiene permisos para SQS
   ##########################
 
   ##########################
@@ -115,11 +129,11 @@ Resources:
           pip3 install flask boto3
 
           # Export environment variables in the current shell
-          export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"
+          export QUEUE_A_TO_B_URL=${QueueAtoB}
           export AWS_REGION=us-east-1
 
           # Add them to /etc/profile for future sessions
-          echo 'export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"' >> /etc/profile
+          echo 'export QUEUE_A_TO_B_URL=${QueueAtoB}' >> /etc/profile
           echo 'export AWS_REGION=us-east-1' >> /etc/profile
 
           # Create the Python application
@@ -176,13 +190,13 @@ Resources:
           pip3 install boto3
 
           # Export environment variables in the current shell
-          export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"
-          export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"
+          export QUEUE_A_TO_B_URL=${QueueAtoB}
+          export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
 
           # Add them to /etc/profile for future sessions
-          echo 'export QUEUE_A_TO_B_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB"' >> /etc/profile
-          echo 'export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"' >> /etc/profile
+          echo 'export QUEUE_A_TO_B_URL=${QueueAtoB}' >> /etc/profile
+          echo 'export QUEUE_B_TO_C_URL=${QueueBtoC}' >> /etc/profile
           echo 'export AWS_REGION=us-east-1' >> /etc/profile
 
           # Create the Python application
@@ -255,11 +269,11 @@ Resources:
           pip3 install boto3
 
           # Export environment variables in the current shell
-          export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"
+          export QUEUE_B_TO_C_URL=${QueueBtoC}
           export AWS_REGION=us-east-1
 
           # Add them to /etc/profile for future sessions
-          echo 'export QUEUE_B_TO_C_URL="https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC"' >> /etc/profile
+          echo 'export QUEUE_B_TO_C_URL=${QueueBtoC}' >> /etc/profile
           echo 'export AWS_REGION=us-east-1' >> /etc/profile
 
           # Create the Python application 
@@ -309,6 +323,14 @@ Resources:
       Comment: "Instancia EC2 que ejecuta microservicio fC"
 
 Outputs:
+  QueueAtoBUrl:
+    Description: URL de la cola A->B
+    Value: !Ref QueueAtoB
+
+  QueueBtoCUrl:
+    Description: URL de la cola B->C
+    Value: !Ref QueueBtoC
+
   fAInstanceID:
     Description: Instancia que corre microservicio fA
     Value: !Ref EC2fA
