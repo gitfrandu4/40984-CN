@@ -209,7 +209,7 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
    - Publicar un mensaje en el Topic SNS (ej. “Un mensaje para gobernarlos a todos desde SNS”).  
    - `fA` recibirá el mensaje vía HTTP, lo procesará y lo enviará a `QueueAtoB`. A partir de ahí, el flujo continuará como en el paso anterior.
 
-    <img src="img/sns_publish.png" width="600">
+    <img src="img/sns_publish.png" width="1200">
 
     <br>
 
