@@ -91,7 +91,7 @@ Resultado final del flujo: Inicio:ABC
 
 <img src="img/ec2_logs_mono.png" width="800">
 
----
+<div class="page"/>
 
 ### 3.2. Desacoplamiento en tres microservicios y uso de colas
 
@@ -239,6 +239,8 @@ El siguiente diagrama muestra la arquitectura desplegada en AWS:
 
 En este diseño, cada microservicio (`fA`, `fB`, `fC`) se ejecuta en una instancia EC2 independiente. Los microservicios se comunican entre sí mediante colas SQS (`QueueAtoB`, `QueueBtoC`), lo que permite un desacoplamiento total entre ellos. Además, `fA` recibe datos de entrada desde un Topic SNS, lo que añade flexibilidad y escalabilidad al sistema.
 
+<div class="page"/>
+
 ## 5. Presupuesto y Estimación de Costos
 
 Para la estimación de costos, se consideran los siguientes elementos:
@@ -267,6 +269,10 @@ Para la estimación de costos, se consideran los siguientes elementos:
 | Transferencia de datos (1GB)                | $0.00               | $0.00                 |
 | CloudFormation (1 stack)                    | $0.00               | $0.00                 |
 | **Total**                                   | **$13.42**          | **$161.04**           |
+
+**NOTA**: los costos pueden variar en función del uso real de los servicios y de las tarifas de AWS.
+
+<div class="page"/>
 
 ## 6. Conclusiones
 
@@ -325,6 +331,8 @@ def monolithic_app():
 if __name__ == "__main__":
     monolithic_app()
 ```
+
+<div class="page"/>
 
 ### Anexo B: Plantilla de CloudFormation aplicación monolítica
 
@@ -485,6 +493,7 @@ Outputs:
     Value: !Ref EC2Mono
 ```
 
+<div class="page"/>
 
 ### Anexo C: Código de las funciones desacopladas
 
@@ -613,6 +622,8 @@ def main_loop():
 if __name__ == "__main__":
     main_loop()
 ```
+
+<div class="page"/>
 
 ### Anexo D: Plantilla de CloudFormation aplicación desacoplada
 
@@ -961,6 +972,7 @@ Outputs:
     Description: Instancia que corre microservicio fC
     Value: !Ref EC2fC
 ```
+<div class="page"/>
 
 ### Anexo E: Plantilla de CloudFormation con SNS
 
