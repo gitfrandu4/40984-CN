@@ -32,8 +32,8 @@
   - [4. Diagrama de la Arquitectura Desplegada](#4-diagrama-de-la-arquitectura-desplegada)
   - [5. Presupuesto y Estimación de Costos](#5-presupuesto-y-estimación-de-costos)
   - [6. Conclusiones](#6-conclusiones)
-  - [5. Referencias](#5-referencias)
-  - [7. Anexos](#7-anexos)
+  - [7. Referencias](#7-referencias)
+  - [8. Anexos](#8-anexos)
     - [Anexo A: Código de las funciones monolíticas](#anexo-a-código-de-las-funciones-monolíticas)
     - [Anexo B: Código de las funciones desacopladas](#anexo-b-código-de-las-funciones-desacopladas)
     - [Anexo C: Plantilla de CloudFormation](#anexo-c-plantilla-de-cloudformation)
@@ -269,7 +269,7 @@ Para la estimación de costos, se consideran los siguientes elementos:
 
 <div class="page"/>
 
-## 5. Referencias
+## 7. Referencias
 
 1. [AWS Docs - Ejemplos en GitHub](https://github.com/awsdocs/aws-doc-sdk-examples)
 2. [AWS SQS Documentation](https://docs.aws.amazon.com/sqs/)
@@ -278,7 +278,7 @@ Para la estimación de costos, se consideran los siguientes elementos:
 
 <div class="page"/>
 
-## 7. Anexos
+## 8. Anexos
 
 ### Anexo A: Código de las funciones monolíticas
 
