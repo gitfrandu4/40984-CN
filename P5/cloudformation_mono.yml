@@ -1,0 +1,153 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Aplicación monolítica con Flask en EC2"
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Tipo de instancia EC2
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+
+Resources:
+  ##########################
+  # 2. VPC y Recursos de Red
+  ##########################
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs ""]
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
+  ##########################
+  # 3. Security Group
+  ##########################
+  MicroservicesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite acceso HTTP a Flask"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5001
+          ToPort: 5001
+          CidrIp: 0.0.0.0/0 #
+
+  ##########################
+  # 4. Instancia EC2
+  ##########################
+  EC2Mono:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: vockey
+      SubnetId: !Ref Subnet1
+      IamInstanceProfile: LabInstanceProfile
+      SecurityGroupIds:
+        - !GetAtt MicroservicesSecurityGroup.GroupId
+      ImageId: ami-06b21ccaeff8cd686
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Update and install dependencies
+          yum update -y
+          yum install -y python3 git python3-pip
+          pip3 install flask boto3
+
+          # Create the Python application
+          cat << EOF > /home/ec2-user/monolithic_app.py
+          import time
+          from flask import Flask, request, jsonify
+
+          app = Flask(__name__)
+
+          def fA(dataA):
+              print("[fA] Recibiendo:", dataA, flush=True)
+              time.sleep(5)  # Simula un proceso pesado
+              return dataA + "A"
+
+          def fB(dataB):
+              print("[fB] Recibiendo:", dataB, flush=True)
+              time.sleep(3)  # Simula un proceso pesado
+              return dataB + "B"
+
+          def fC(dataC):
+              print("[fC] Recibiendo:", dataC, flush=True)
+              time.sleep(4)  # Simula un proceso pesado
+              return dataC + "C"
+
+          @app.route("/monolithic_app", methods=["POST"])
+          def monolithic_app():
+              w = request.json.get("data", "Inicio:")
+              print("Comienzo de la ejecución con w =", w, flush=True)
+
+              x = fA(w)
+              y = fB(x)
+              z = fC(y)
+
+              print("Resultado final del flujo:", z, flush=True)
+              return jsonify({"result": z})
+
+          if __name__ == "__main__":
+              app.run(host="0.0.0.0", port=5001)
+          EOF
+
+          sudo touch /var/log/monolithic_app_service.log
+          sudo chmod 644 /var/log/monolithic_app_service.log
+
+          # Run Python in unbuffered mode
+          nohup python3 -u /home/ec2-user/monolithic_app.py > /var/log/monolithic_app_service.log 2>&1 &
+    Metadata:
+      Comment: "Instancia EC2 con Flask"
+
+Outputs:
+  fAInstanceID:
+    Description: Instancia que corre
+    Value: !Ref EC2Mono

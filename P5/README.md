@@ -35,9 +35,10 @@
   - [7. Referencias](#7-referencias)
   - [8. Anexos](#8-anexos)
     - [Anexo A: Código de las funciones monolíticas](#anexo-a-código-de-las-funciones-monolíticas)
-    - [Anexo B: Código de las funciones desacopladas](#anexo-b-código-de-las-funciones-desacopladas)
-    - [Anexo C: Plantilla de CloudFormation](#anexo-c-plantilla-de-cloudformation)
-    - [Anexo D: Plantilla de CloudFormation con SNS](#anexo-d-plantilla-de-cloudformation-con-sns)
+    - [Anexo B: Plantilla de CloudFormation aplicación monolítica](#anexo-b-plantilla-de-cloudformation-aplicación-monolítica)
+    - [Anexo C: Código de las funciones desacopladas](#anexo-c-código-de-las-funciones-desacopladas)
+    - [Anexo D: Plantilla de CloudFormation aplicación desacoplada](#anexo-d-plantilla-de-cloudformation-aplicación-desacoplada)
+    - [Anexo E: Plantilla de CloudFormation con SNS](#anexo-e-plantilla-de-cloudformation-con-sns)
 
 <div class="page"/>
 
@@ -81,6 +82,14 @@ Comienzo de la ejecución monolítica con w = Inicio:
 [fC] Recibiendo: Inicio:AB
 Resultado final del flujo: Inicio:ABC
 ```
+
+4. **Despliegue en AWS** de las funciones en instancias EC2 utilizando **CloudFormation**. 
+
+  - Código de la plantilla de CloudFormation: [Anexo B](#anexo-b-plantilla-de-cloudformation-aplicación-monolítica).
+
+5. **Comprobar** el correcto funcionamiento en AWS.
+
+<img src="img/ec2_logs_mono.png" width="800">
 
 ---
 
@@ -136,7 +145,7 @@ Creamos tres microservicios independientes (`fA`, `fB`, `fC`) que se comunican m
 
 Este desacoplamiento permite mayor flexibilidad, tolerancia a fallos y escalabilidad en la arquitectura.
 
-El código de cada microservicio se encuentra en los anexos: [Anexo B](#anexo-b-código-de-las-funciones-desacopladas).
+El código de cada microservicio se encuentra en los anexos: [Anexo C](#anexo-c-código-de-las-funciones-desacopladas).
 
 #### 3.2.3. Despliegue de los microservicios en EC2 mediante CloudFormation
 
@@ -146,7 +155,7 @@ Se utilizó una plantilla de CloudFormation para:
 2. Desplegar tres instancias EC2 con scripts de inicio (`UserData`) que instalan las dependencias, definen variables de entorno y ejecutan cada microservicio.
 3. Crear las colas SQS (`QueueAtoB` y `QueueBtoC`).
 
-El código de la plantilla CloudFormation se encuentra en el [Anexo C](#anexo-c-plantilla-de-cloudformation).
+El código de la plantilla CloudFormation se encuentra en el [Anexo D](#anexo-d-plantilla-de-cloudformation-aplicación-desacoplada).
 
 <img src="img/cloudformation_canvas.png" width="600">
 <img src="img/cloudformation_stack.png" width="600">
@@ -217,7 +226,7 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
 
 Esta integración añade mayor flexibilidad: ahora `fA` no sólo responde a peticiones manuales, sino también a eventos externos publicados en un Topic SNS, manteniendo el diseño desacoplado y escalable.
 
-El código de la plantilla CloudFormation con SNS se encuentra en el [Anexo D](#anexo-d-plantilla-de-cloudformation-con-sns).
+El código de la plantilla CloudFormation con SNS se encuentra en el [Anexo E](#anexo-e-plantilla-de-cloudformation-con-sns).
 
 
 <div class="page"/>
@@ -317,7 +326,167 @@ if __name__ == "__main__":
     monolithic_app()
 ```
 
-### Anexo B: Código de las funciones desacopladas
+### Anexo B: Plantilla de CloudFormation aplicación monolítica
+
+```yaml
+# cloudformation_monolithic.yml
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Aplicación monolítica con Flask en EC2"
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: Tipo de instancia EC2
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+
+Resources:
+  ##########################
+  # 2. VPC y Recursos de Red
+  ##########################
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs ""]
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref Subnet1
+      RouteTableId: !Ref RouteTable
+
+  ##########################
+  # 3. Security Group
+  ##########################
+  MicroservicesSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Permite acceso HTTP a Flask"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 5001
+          ToPort: 5001
+          CidrIp: 0.0.0.0/0 #
+
+  ##########################
+  # 4. Instancia EC2
+  ##########################
+  EC2Mono:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: vockey
+      SubnetId: !Ref Subnet1
+      IamInstanceProfile: LabInstanceProfile
+      SecurityGroupIds:
+        - !GetAtt MicroservicesSecurityGroup.GroupId
+      ImageId: ami-06b21ccaeff8cd686
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          # Update and install dependencies
+          yum update -y
+          yum install -y python3 git python3-pip
+          pip3 install flask boto3
+
+          # Create the Python application
+          cat << EOF > /home/ec2-user/monolithic_app.py
+          import time
+          from flask import Flask, request, jsonify
+
+          app = Flask(__name__)
+
+          def fA(dataA):
+              print("[fA] Recibiendo:", dataA, flush=True)
+              time.sleep(5)  # Simula un proceso pesado
+              return dataA + "A"
+
+          def fB(dataB):
+              print("[fB] Recibiendo:", dataB, flush=True)
+              time.sleep(3)  # Simula un proceso pesado
+              return dataB + "B"
+
+          def fC(dataC):
+              print("[fC] Recibiendo:", dataC, flush=True)
+              time.sleep(4)  # Simula un proceso pesado
+              return dataC + "C"
+
+          @app.route("/monolithic_app", methods=["POST"])
+          def monolithic_app():
+              w = request.json.get("data", "Inicio:")
+              print("Comienzo de la ejecución con w =", w, flush=True)
+
+              x = fA(w)
+              y = fB(x)
+              z = fC(y)
+
+              print("Resultado final del flujo:", z, flush=True)
+              return jsonify({"result": z})
+
+          if __name__ == "__main__":
+              app.run(host="0.0.0.0", port=5001)
+          EOF
+
+          sudo touch /var/log/monolithic_app_service.log
+          sudo chmod 644 /var/log/monolithic_app_service.log
+
+          # Run Python in unbuffered mode
+          nohup python3 -u /home/ec2-user/monolithic_app.py > /var/log/monolithic_app_service.log 2>&1 &
+    Metadata:
+      Comment: "Instancia EC2 con Flask"
+
+Outputs:
+  fAInstanceID:
+    Description: Instancia que corre
+    Value: !Ref EC2Mono
+```
+
+
+### Anexo C: Código de las funciones desacopladas
 
 ```python
 # fA.py
@@ -445,7 +614,7 @@ if __name__ == "__main__":
     main_loop()
 ```
 
-### Anexo C: Plantilla de CloudFormation
+### Anexo D: Plantilla de CloudFormation aplicación desacoplada
 
 ```yaml
 # cloudformation.yml
@@ -793,7 +962,7 @@ Outputs:
     Value: !Ref EC2fC
 ```
 
-### Anexo D: Plantilla de CloudFormation con SNS
+### Anexo E: Plantilla de CloudFormation con SNS
 
 ```yaml
 # cloudformation_sns.yml
