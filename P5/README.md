@@ -183,7 +183,7 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
      - **Nombre para visualización**: `TopicAtoB`
      - Mantenemos el resto de opciones por defecto.
 
-    <img src="img/sns_topic.png" width="600">
+    <img src="img/sns_topic.png" width="1200">
 
 2. **Obtener el Endpoint Público de fA**  
    - Desde la consola EC2, ubicamos la instancia que corre `fA`.
@@ -197,13 +197,13 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
    - **Protocolo**: `HTTP`
    - **Punto de enlace**: `http://ec2-18-232-98-219.compute-1.amazonaws.com:5001/start`
 
-    <img src="img/sns_subscription.png" width="600">
+    <img src="img/sns_subscription.png" width="1200">
 
 4. **Confirmar la Suscripción en fA**  
    - SNS enviará una petición `POST` al endpoint `/start` para confirmar la suscripción.
    - En los logs de `fA` (`/var/log/fa_service.log`) se podrá ver un mensaje indicando la recepción de la confirmación de suscripción. `fA` deberá responder con un código `200` para validar la suscripción.
 
-    <img src="img/sns_subscription_confirm.png" width="600">
+    <img src="img/sns_subscription_confirm.png" width="1200">
 
 5. **Probar la Integración**  
    - Publicar un mensaje en el Topic SNS (ej. “Un mensaje para gobernarlos a todos desde SNS”).  
