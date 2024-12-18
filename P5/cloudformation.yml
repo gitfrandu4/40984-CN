@@ -151,10 +151,10 @@ Resources:
           @app.route("/start", methods=["POST"])
           def start_flow():
               input_data = request.json.get("data", "Inicio:")
-              print("[fA] Recibiendo:", input_data)
+              print("[fA] Recibiendo:", input_data, flush=True)
               time.sleep(5)
               output_data = input_data + "A"
-              print("[fA] Enviando a SQS:", output_data)
+              print("[fA] Enviando a SQS:", output_data, flush=True)
               sqs_client.send_message(QueueUrl=QUEUE_A_TO_B_URL, MessageBody=output_data)
               return {"status": "ok", "fA_output": output_data}, 200
 
@@ -162,12 +162,11 @@ Resources:
               app.run(host="0.0.0.0", port=5001)
           EOF
 
-          # Ensure log file location exists and set permissions
           sudo touch /var/log/fa_service.log
           sudo chmod 644 /var/log/fa_service.log
 
-          # Start the Python application and log output
-          nohup python3 /home/ec2-user/fA.py > /var/log/fa_service.log 2>&1 &
+          # Run Python in unbuffered mode
+          nohup python3 -u /home/ec2-user/fA.py > /var/log/fa_service.log 2>&1 &
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fA"
 
@@ -210,7 +209,7 @@ Resources:
           QUEUE_B_TO_C_URL = os.environ.get("QUEUE_B_TO_C_URL")
 
           def process_message_b(dataB):
-              print("[fB] Procesando:", dataB)
+              print("[fB] Procesando:", dataB, flush=True)
               time.sleep(3)
               return dataB + "B"
 
@@ -225,7 +224,7 @@ Resources:
                       for msg in messages["Messages"]:
                           body = msg["Body"]
                           output_data = process_message_b(body)
-                          print("[fB] Enviando a SQS:", output_data)
+                          print("[fB] Enviando a SQS:", output_data, flush=True)
                           sqs_client.send_message(
                               QueueUrl=QUEUE_B_TO_C_URL,
                               MessageBody=output_data
@@ -240,13 +239,11 @@ Resources:
               main_loop()
           EOF
 
-          # Ensure log file location exists and set permissions
           sudo touch /var/log/fb_service.log
           sudo chmod 644 /var/log/fb_service.log
 
-          # Start the Python application and log output
-          nohup python3 /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
-
+          # Run Python in unbuffered mode
+          nohup python3 -u /home/ec2-user/fB.py > /var/log/fb_service.log 2>&1 &
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fB"
 
@@ -286,7 +283,7 @@ Resources:
           QUEUE_B_TO_C_URL = os.environ.get("QUEUE_B_TO_C_URL")
 
           def process_message_c(dataC):
-              print("[fC] Procesando:", dataC)
+              print("[fC] Procesando:", dataC, flush=True)
               time.sleep(4)
               return dataC + "C"
 
@@ -301,7 +298,7 @@ Resources:
                       for msg in messages["Messages"]:
                           body = msg["Body"]
                           output_data = process_message_c(body)
-                          print("[fC] Resultado final:", output_data)
+                          print("[fC] Resultado final:", output_data, flush=True)
                           sqs_client.delete_message(
                               QueueUrl=QUEUE_B_TO_C_URL,
                               ReceiptHandle=msg["ReceiptHandle"]
@@ -312,13 +309,11 @@ Resources:
               main_loop()
           EOF
 
-          # Ensure log file location exists and set permissions
           sudo touch /var/log/fc_service.log
           sudo chmod 644 /var/log/fc_service.log
 
-          # Start the Python application and log output
-          nohup python3 /home/ec2-user/fC.py > /var/log/fc_service.log 2>&1 &
-
+          # Run Python in unbuffered mode
+          nohup python3 -u /home/ec2-user/fC.py > /var/log/fc_service.log 2>&1 &
     Metadata:
       Comment: "Instancia EC2 que ejecuta microservicio fC"
 
