@@ -211,7 +211,9 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
 
     <img src="img/sns_publish.png" width="600">
 
-    <img src="img/sns_message.png" width="600">
+    <br>
+
+    <img src="img/sns_message.png" width="1200">
 
 Esta integración añade mayor flexibilidad: ahora `fA` no sólo responde a peticiones manuales, sino también a eventos externos publicados en un Topic SNS, manteniendo el diseño desacoplado y escalable.
 
@@ -224,7 +226,7 @@ El código de la plantilla CloudFormation con SNS se encuentra en el [Anexo D](#
 
 El siguiente diagrama muestra la arquitectura desplegada en AWS:
 
-<img src="img/arquitectura_desacoplada.png" width="800">
+<img src="img/arquitectura_desacoplada.png" width="600">
 
 En este diseño, cada microservicio (`fA`, `fB`, `fC`) se ejecuta en una instancia EC2 independiente. Los microservicios se comunican entre sí mediante colas SQS (`QueueAtoB`, `QueueBtoC`), lo que permite un desacoplamiento total entre ellos. Además, `fA` recibe datos de entrada desde un Topic SNS, lo que añade flexibilidad y escalabilidad al sistema.
 
