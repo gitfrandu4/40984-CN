@@ -82,13 +82,9 @@ Comienzo de la ejecución monolítica con w = Inicio:
 Resultado final del flujo: Inicio:ABC
 ```
 
-<br>
-
 ### 3.2. Desacoplamiento en tres microservicios y uso de colas
 
 **Objetivo**: Crear **tres aplicaciones independientes** (`fA`, `fB`, `fC`) y conectarlas mediante **colas SQS** para que la salida de una sea la entrada de la siguiente.
-
-**Pasos a seguir**:
 
 #### 3.2.1. Creación de las colas SQS
 
@@ -104,7 +100,7 @@ Resultado final del flujo: Inicio:ABC
      - **Método**: básico
      - **Quién puede enviar mensajes**: solo el propietario de la cola
      - **Quién puede recibir mensajes**: solo el propietario de la cola
-   - Resto de opciones por defecto.
+   - Mantenemos el resto de opciones por defecto.
    - URL de la cola: `https://sqs.us-east-1.amazonaws.com/491250998585/QueueAtoB`
 
 <img src="img/queueAtoB.png" width="600">
@@ -121,7 +117,7 @@ Resultado final del flujo: Inicio:ABC
      - **Método**: básico
      - **Quién puede enviar mensajes**: solo el propietario de la cola
      - **Quién puede recibir mensajes**: solo el propietario de la cola
-   - Resto de opciones por defecto.
+   - Mantenemos el de opciones por defecto.
    - URL de la cola: `https://sqs.us-east-1.amazonaws.com/491250998585/QueueBtoC`
 
 <img src="img/queueBtoC.png" width="600">
