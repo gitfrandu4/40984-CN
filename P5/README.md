@@ -46,6 +46,8 @@
 
 En esta práctica se trabajará con **colas y eventos de AWS** para desacoplar una aplicación inicial (monolítica) en un **conjunto de microservicios escalable**. Se experimentará con servicios de AWS como **Amazon SQS** y **Amazon SNS**, creando flujos asíncronos entre las distintas funciones y facilitando la comunicación desacoplada.
 
+**Las arquitecturas monolíticas** pueden presentar limitaciones en términos de escalabilidad y mantenimiento. Al crecer la aplicación, se vuelve más complejo implementar cambios y solucionar problemas sin afectar al sistema completo. El desacoplamiento en microservicios permite aislar funciones específicas, facilitando la escalabilidad horizontal y la reutilización de componentes.
+
 <div class="page"/>
 
 ## 2. Objetivos
@@ -64,6 +66,8 @@ En esta práctica se trabajará con **colas y eventos de AWS** para desacoplar u
 
 - `fA` → `fB` → `fC`
 - Cada función hace un _wait_ (o _sleep_) de unos segundos antes de devolver su resultado.
+
+Las aplicaciones monolíticas consolidan todas las funcionalidades en un solo bloque de código o servicio. Este enfoque puede ser adecuado para aplicaciones pequeñas, pero a medida que la aplicación crece, surgen desafíos como la dificultad para escalar componentes individuales y la dependencia fuerte entre módulos.
 
 **Pasos para la implementación**:
 
@@ -85,17 +89,19 @@ Resultado final del flujo: Inicio:ABC
 
 4. **Despliegue en AWS** de las funciones en instancias EC2 utilizando **CloudFormation**. 
 
-  - Código de la plantilla de CloudFormation: [Anexo B](#anexo-b-plantilla-de-cloudformation-aplicación-monolítica).
+    - Código de la plantilla de CloudFormation: [Anexo B](#anexo-b-plantilla-de-cloudformation-aplicación-monolítica).
 
 5. **Comprobar** el correcto funcionamiento en AWS.
 
-<img src="img/ec2_logs_mono.png" width="800">
+<img src="img/ec2_logs_mono.png" width="400">
 
 <div class="page"/>
 
 ### 3.2. Desacoplamiento en tres microservicios y uso de colas
 
 > **Objetivo**: Crear **tres aplicaciones independientes** (`fA`, `fB`, `fC`) y conectarlas mediante **colas SQS** para que la salida de una sea la entrada de la siguiente.
+
+El **desacoplamiento** en microservicios implica dividir la aplicación en servicios pequeños y autónomos que se comunican entre sí. Esto mejora la **escalabilidad**, ya que cada microservicio puede escalarse de forma independiente según su carga de trabajo. Además, facilita el **mantenimiento** y la **implementación continua**, permitiendo que los equipos desarrollen, desplieguen y actualicen componentes sin afectar al resto del sistema.
 
 #### 3.2.1. Creación de las colas SQS
 
@@ -135,6 +141,14 @@ Resultado final del flujo: Inicio:ABC
 
 **NOTA**: este paso lo vamos a realizar de nuevo pero integrado en la plantilla de CloudFormation.
 
+**Amazon SQS (Simple Queue Service)** es un servicio de mensajería totalmente gestionado que permite desacoplar y escalar microservicios, sistemas distribuidos y aplicaciones serverless. SQS garantiza la entrega de mensajes entre los componentes de la aplicación de manera fiable y escalable.
+
+Elegimos SQS porque:
+
+- **Fiabilidad**: Garantiza la entrega de mensajes y gestiona automáticamente réplicas y disponibilidad.
+- **Escalabilidad**: Maneja automáticamente una carga variable de mensajes sin necesidad de administración manual.
+- **Simplicidad**: Facilita la comunicación entre microservicios sin necesidad de configurar y mantener infraestructura de mensajería.
+
 #### 3.2.2. Creación de los tres microservicios
 
 Creamos tres microservicios independientes (`fA`, `fB`, `fC`) que se comunican mediante colas SQS:
@@ -142,6 +156,12 @@ Creamos tres microservicios independientes (`fA`, `fB`, `fC`) que se comunican m
 - **fA**: Expone un endpoint `/start`. Al recibir una petición POST, procesa el dato, añade `"A"` y envía el resultado a `QueueAtoB`.
 - **fB**: Hace “polling” de `QueueAtoB`. Cada mensaje lo procesa añadiendo `"B"` y lo reenvía a `QueueBtoC`.
 - **fC**: Hace “polling” de `QueueBtoC`. Cada mensaje lo procesa añadiendo `"C"` y muestra el resultado final.
+
+Este enfoque presenta varias ventajas:
+
+- **Independencia**: Cada microservicio se desarrolla y despliega de forma aislada.
+- **Flexibilidad**: Es posible implementar diferentes tecnologías y lenguajes en cada microservicio.
+- **Resiliencia**: Si un microservicio falla, los demás pueden seguir operando.
 
 Este desacoplamiento permite mayor flexibilidad, tolerancia a fallos y escalabilidad en la arquitectura.
 
@@ -157,8 +177,19 @@ Se utilizó una plantilla de CloudFormation para:
 
 El código de la plantilla CloudFormation se encuentra en el [Anexo D](#anexo-d-plantilla-de-cloudformation-aplicación-desacoplada).
 
+Canva de la plantilla CloudFormation:
+
 <img src="img/cloudformation_canvas.png" width="600">
+
+Stack de CloudFormation con los recursos creados:
+
 <img src="img/cloudformation_stack.png" width="600">
+
+Optamos por desplegar los microservicios en **Amazon EC2** debido a:
+
+- **Control total**: EC2 proporciona acceso completo al sistema operativo y al entorno de ejecución.
+- **Compatibilidad**: Adecuado para aplicaciones que requieren recursos específicos o no están diseñadas para entornos serverless.
+- **Escalabilidad personalizada**: Permite ajustar los recursos de las instancias según las necesidades de cada microservicio.
 
 Tras el despliegue:
 
@@ -181,6 +212,12 @@ Este resultado demuestra que el desacoplamiento mediante colas SQS funciona corr
 ### 3.3. Configuración de Amazon SNS y suscripción de fA
 
 > **Objetivo**: Permitir que `fA` reciba datos de entrada desde un **Topic** de Amazon SNS. De esta forma, en lugar de iniciar el flujo enviando una petición HTTP manual a `fA`, cualquier evento o publicación en el **Topic SNS** desencadenará la ejecución del flujo en `fA`.
+
+**Amazon SNS (Simple Notification Service)** es un servicio de mensajería que permite enviar notificaciones a múltiples subscriptores a través de diversos protocolos. Integrar SNS con `fA` aporta:
+
+- **Desencadenamiento basado en eventos**: `fA` puede reaccionar a eventos publicados en el Topic SNS sin intervención manual.
+- **Flexibilidad en las fuentes de datos**: Otros servicios o aplicaciones pueden publicar mensajes que `fA` procesará.
+- **Escalabilidad**: SNS maneja automáticamente el aumento en la tasa de mensajes publicados.
 
 **Pasos a seguir**:
 
@@ -239,6 +276,8 @@ El siguiente diagrama muestra la arquitectura desplegada en AWS:
 
 En este diseño, cada microservicio (`fA`, `fB`, `fC`) se ejecuta en una instancia EC2 independiente. Los microservicios se comunican entre sí mediante colas SQS (`QueueAtoB`, `QueueBtoC`), lo que permite un desacoplamiento total entre ellos. Además, `fA` recibe datos de entrada desde un Topic SNS, lo que añade flexibilidad y escalabilidad al sistema.
 
+El diagrama representa cómo los **microservicios** interactúan a través de **colas SQS** y cómo **SNS** se integra para iniciar el flujo. Este diseño demuestra una arquitectura **event-driven** que mejora la **responsividad** y **escalabilidad** del sistema.
+
 <div class="page"/>
 
 ## 5. Presupuesto y Estimación de Costos
@@ -272,6 +311,12 @@ Para la estimación de costos, se consideran los siguientes elementos:
 
 **NOTA**: los costos pueden variar en función del uso real de los servicios y de las tarifas de AWS.
 
+**Análisis de costos**:
+
+- El uso de **instancias t2.micro** permite mantener bajos los costos iniciales.
+- **SQS y SNS** ofrecen un modelo de precios por demanda, donde se paga por las solicitudes realizadas, resultando económico para cargas moderadas.
+- La elección de **EC2** sobre **Lambda** se justifica cuando se requiere control sobre el entorno o para cargas de trabajo constantes que podrían resultar más costosas con Lambda.
+
 <div class="page"/>
 
 ## 6. Conclusiones
@@ -283,6 +328,8 @@ Para la estimación de costos, se consideran los siguientes elementos:
 - El despliegue en **EC2** aporta flexibilidad, pero introduce costos más elevados en comparación con **AWS Lambda** para escenarios de carga baja o moderada. Para cargas elevadas, la solución actual es más adecuada debido al control total sobre las instancias.
 
 - En términos de costos, el uso de **SQS** y **SNS** resulta económico para esta escala, aunque el análisis debe incluir escenarios de carga alta para validar la sostenibilidad.
+
+La implementación de una arquitectura basada en microservicios y servicios gestionados de AWS facilita la construcción de aplicaciones **escalables**, **modulares** y **resilientes**. Comprender y utilizar herramientas como **SQS**, **SNS** y **CloudFormation** es fundamental para el desarrollo de soluciones en la nube modernas. Las decisiones tomadas en cuanto a la arquitectura y tecnologías utilizadas reflejan una estrategia orientada a maximizar los beneficios de la nube mientras se mantienen consideraciones de costos y eficiencia.
 
 <div class="page"/>
 
