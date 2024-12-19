@@ -22,13 +22,18 @@
   - [Índice](#índice)
   - [1. Introducción](#1-introducción)
   - [2. Objetivos](#2-objetivos)
-  - [3. Descripción de Actividades](#3-descripción-de-actividades)
-    - [3.1. Creación de un contenedor Docker con una aplicación](#31-creación-de-un-contenedor-docker-con-una-aplicación)
-    - [3.2. Creación de un repositorio en ECR y subida del contenedor](#32-creación-de-un-repositorio-en-ecr-y-subida-del-contenedor)
-    - [3.3. Despliegue del contenedor usando ECS](#33-despliegue-del-contenedor-usando-ecs)
-    - [3.4. Despliegue del contenedor usando Fargate y comparación](#34-despliegue-del-contenedor-usando-fargate-y-comparación)
-    - [3.5. Actividad Extra 1 (Opcional): Automatización con CloudFormation](#35-actividad-extra-1-opcional-automatización-con-cloudformation)
-    - [3.6. Actividad Extra 2: Despliegue de un cluster con varios contenedores](#36-actividad-extra-2-despliegue-de-un-cluster-con-varios-contenedores)
+  - [3.1. Creación de un contenedor Docker con una aplicación](#31-creación-de-un-contenedor-docker-con-una-aplicación)
+  - [3.2. Creación de un repositorio en ECR y subida del contenedor](#32-creación-de-un-repositorio-en-ecr-y-subida-del-contenedor)
+  - [3.3. Despliegue del contenedor usando ECS](#33-despliegue-del-contenedor-usando-ecs)
+    - [3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2](#331-pasos-para-crear-un-clúster-de-ecs-con-instancias-ec2)
+    - [3.3.2. Arquitectura Final](#332-arquitectura-final)
+    - [3.3.3. Análisis de Costos](#333-análisis-de-costos)
+  - [3.4. Despliegue del contenedor usando Fargate y comparación](#34-despliegue-del-contenedor-usando-fargate-y-comparación)
+    - [3.4.1. Pasos para Desplegar en Fargate](#341-pasos-para-desplegar-en-fargate)
+    - [3.4.2. Comparación entre EC2 y Fargate](#342-comparación-entre-ec2-y-fargate)
+    - [3.4.3. Arquitectura Final con Fargate](#343-arquitectura-final-con-fargate)
+    - [3.4.4. Análisis de Costos](#344-análisis-de-costos)
+    - [3.5. Actividad Extra: Despliegue de un cluster con varios contenedores](#35-actividad-extra-despliegue-de-un-cluster-con-varios-contenedores)
   - [4. Conclusiones](#4-conclusiones)
   - [5. Referencias](#5-referencias)
   - [6. Anexos](#6-anexos)
@@ -50,16 +55,13 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 - Configurar un repositorio en Amazon ECR y subir el contenedor creado.
 - Desplegar el contenedor usando Amazon ECS.
 - Desplegar el contenedor usando AWS Fargate y comparar la experiencia con el despliegue anterior.
-- (Opcional) Automatizar el procedimiento utilizando AWS CloudFormation y scripts para minimizar el uso del cliente web de AWS.
-- (Opcional) Extender el despliegue para implementar un cluster con varios contenedores distintos.
+- Extender el despliegue para implementar un cluster con varios contenedores distintos.
 
 <div class="page"/>
 
-## 3. Descripción de Actividades
+## 3.1. Creación de un contenedor Docker con una aplicación
 
-### 3.1. Creación de un contenedor Docker con una aplicación
-
-**Descripción**: Crear un contenedor Docker que contenga una aplicación que permita comprobar su funcionamiento, como por ejemplo una página web sencilla.
+> **Objetivo**: Crear un contenedor Docker que contenga una aplicación que permita comprobar su funcionamiento, como por ejemplo una página web sencilla.
 
 **Conceptos Clave**:
 
@@ -102,7 +104,7 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 
 <div class="page"/>
 
-### 3.2. Creación de un repositorio en ECR y subida del contenedor
+## 3.2. Creación de un repositorio en ECR y subida del contenedor
 
 > **Descripción**: Configurar un repositorio en Amazon Elastic Container Registry (ECR) y subir la imagen del contenedor creado en el paso anterior.
 
@@ -177,11 +179,11 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 
 <div class="page"/>
 
-### 3.3. Despliegue del contenedor usando ECS
+## 3.3. Despliegue del contenedor usando ECS
 
 > **Descripción**: Ahora crearemos un clúster en ECS usando instancias EC2, definiendo la tarea y el servicio. Esto proporciona más control sobre la infraestructura subyacente, permitiendo por ejemplo el uso de tipos de instancia específicos y estrategias de escalado personalizadas.
 
-**Pasos para crear un Clúster de ECS con Instancias EC2**:
+### 3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2
 
 1. **Crear un clúster de ECS**:
 
@@ -227,7 +229,7 @@ Como estamos ejecutando dos contenedores (WordPress y MariaDB) que necesitan com
     - Tipo de Lanzamiento: `EC2`.
     - Sistema operativo: `Linux/ARM64`.
       - **Nota**: Si estamos utilizando instancias ARM, debemos asegurarnos de que las imágenes de los contenedores son compatibles con ARM.
-    - Modo de red: `awsvpc`.
+    - Modo de red: `bridge`.
     - CPU: `1 vCPU`.
     - Memoria: `1 GB`.
       - **Nota**: Ajustar la memoria y CPU según los requisitos de la aplicación.
@@ -309,13 +311,13 @@ El servicio mantiene el número de tareas especificado en ejecución, lo que apo
 - Verificar que el grupo de seguridad permita tráfico en el puerto `80`.
 - Ajustar recursos según las necesidades reales, evitando sobrecostes o subdimensionamiento.
 
-5. **Arquitectura Final**:
+### 3.3.2. Arquitectura Final
 
-<img src="img/ecs-architecture.png" alt="ECS Architecture" width="600"/>
+<img src="img/arquitectura_ecs_con_ec2.png" alt="ECS Architecture" width="600"/>
 
 La arquitectura final incluye un clúster de ECS con instancias EC2, una definición de tarea con dos contenedores (WordPress y MariaDB) y un servicio que mantiene una tarea en ejecución. La comunicación entre los contenedores se realiza a través de la red interna de ECS.
 
-6. **Análisis de Costos**:
+### 3.3.3. Análisis de Costos
 
 <img src="img/ecs-costs.png" alt="ECS Costs" width="600"/>
 
@@ -333,7 +335,7 @@ Los costos principales se dividen entre instancias EC2 ($16.86 USD/mes), almacen
 
 <div class="page"/>
 
-### 3.4. Despliegue del contenedor usando Fargate y comparación
+## 3.4. Despliegue del contenedor usando Fargate y comparación
 
 > **Descripción**: Desplegar la misma aplicación (WordPress y MariaDB) en AWS ECS, pero empleando el tipo de lanzamiento Fargate en lugar de EC2. Esto facilitará la comparación entre ambas opciones, resaltando las diferencias en la gestión de infraestructura, costos, escalabilidad y simplicidad de la operación.
 
@@ -351,7 +353,7 @@ Los costos principales se dividen entre instancias EC2 ($16.86 USD/mes), almacen
 
 - Con Fargate se paga por tiempo de cómputo y recursos asignados (vCPU y RAM) a las tareas, no por la infraestructura persistente como en EC2. Ajustar adecuadamente la CPU y la memoria asignadas a la `Task Definition` evitará sobrecostos.
 
-Pasos para el Despliegue:
+### 3.4.1. Pasos para Desplegar en Fargate
 
 1. **Crear un nuevo Clúster de ECS**:
 
@@ -469,11 +471,41 @@ En teoría, al usar el modo de red `awsvpc`, los contenedores de una misma tarea
 
 <div class="page"/>
 
-### 3.5. Actividad Extra 1 (Opcional): Automatización con CloudFormation
+### 3.4.2. Comparación entre EC2 y Fargate
 
-<div class="page"/>
+| Característica              | EC2                                | Fargate                          |
+|-----------------------------|------------------------------------|----------------------------------|
+| **Gestión de Infraestructura** | Requiere aprovisionar y gestionar instancias manualmente. | Totalmente serverless, AWS gestiona la infraestructura. |
+| **Flexibilidad**            | Alta, permite elegir tipos de instancias específicas. | Limitada a las configuraciones disponibles en Fargate. |
+| **Escalabilidad**           | Puede configurarse manualmente o mediante Auto Scaling. | Escala automáticamente según la carga de trabajo. |
+| **Costo**                   | Menor costo en cargas de trabajo constantes y predecibles. | Puede ser más caro en cargas pequeñas o irregulares. |
+| **Simplicidad**             | Requiere conocimientos de gestión de infraestructura. | Más sencillo, adecuado para usuarios nuevos. |
+| **Disponibilidad**          | Depende de la configuración de las instancias y la red. | Alta disponibilidad integrada por defecto. |
 
-### 3.6. Actividad Extra 2: Despliegue de un cluster con varios contenedores
+### 3.4.3. Arquitectura Final con Fargate
+
+<img src="img/arquitectura_ecs_con_fargate.png" alt="Fargate Architecture" width="600"/>
+
+La arquitectura final con Fargate incluye un clúster de ECS con tareas ejecutadas en el servicio Fargate, sin necesidad de gestionar instancias EC2. Aunque Fargate ofrece una solución serverless y simplificada, puede presentar desafíos en la comunicación entre contenedores dentro de la misma tarea.
+
+### 3.4.4. Análisis de Costos
+
+
+| Servicio                                    | Costo Mensual (USD) | Costo Anual (USD)     |
+| ------------------------------------------- | ------------------- | --------------------- |
+| **Fargate Compute**                         | $28.80              | $345.60               |
+| **Amazon Elastic Container Registry (ECR)** | $0.08               | $0.96                 |
+| **AWS Data Transfer**                       | $9.00               | $108.00               |
+| **Elastic Load Balancer (ELB)** (opcional)  | ~$16.20             | ~$194.40              |
+| **AWS CloudWatch** (opcional)               | ~$1.10              | ~$13.20               |
+| **Total Estimado**                          | **$38.98 - $55.18** | **$467.76 - $662.16** |
+
+**Observaciones sobre costos con Fargate y EC2**:
+
+- **EC2** es más económico en configuraciones predecibles y constantes, con mayor flexibilidad para personalizar los recursos.
+- **Fargate** elimina la necesidad de gestionar infraestructura, pero tiene un costo mayor debido al modelo de pago por recursos asignados.
+
+### 3.5. Actividad Extra: Despliegue de un cluster con varios contenedores
 
 En esta actividad se realizó el despliegue de un clúster con múltiples contenedores utilizando AWS ECS en dos configuraciones principales:
 
