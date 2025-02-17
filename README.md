@@ -1,4 +1,4 @@
-# 40984 - Computación en la Nube 🌥️ 
+# 40984 - Computación en la Nube 🌥️
 
 ¡Bienvenido a mi repositorio de prácticas para la asignatura de **Computación en la Nube**! 🌐 Aquí encontrarás mis trabajos y proyectos desarrollados durante el curso.
 
@@ -21,6 +21,11 @@
     - [📊 Diagrama de la Arquitectura](#-diagrama-de-la-arquitectura)
     - [💡 Conclusiones](#-conclusiones)
   - [4. 🐳 Contenedores](#4--contenedores)
+    - [🔹 Actividades Principales](#-actividades-principales-3)
+    - [💻 Ejemplo de Comandos](#-ejemplo-de-comandos)
+    - [📊 Diagrama de la Arquitectura (EC2)](#-diagrama-de-la-arquitectura-ec2)
+    - [📊 Diagrama de la Arquitectura (Fargate)](#-diagrama-de-la-arquitectura-fargate)
+    - [💡 Conclusiones](#-conclusiones-1)
   - [5. 🔄 Desacoplamiento](#5--desacoplamiento)
   - [🌟 Recursos Adicionales](#-recursos-adicionales)
   - [✉️ Contacto](#️-contacto)
@@ -37,19 +42,22 @@ En esta práctica, exploramos los fundamentos del servicio EC2 de Amazon Web Ser
 
 ### 🔹 Actividades Principales
 
-1. **Despliegue de una instancia SSH\_gate:** 
+1. **Despliegue de una instancia SSH_gate:**
+
    - Configuración de una instancia EC2 como puerta de enlace para conexiones SSH.
    - Seguridad de la instancia mediante grupos de seguridad que limitan el acceso al puerto 22.
 
-2. **Despliegue de un servidor web:** 
-   - Instalación y configuración de un servidor web en una segunda instancia EC2, accesible solo desde SSH\_gate.
+2. **Despliegue de un servidor web:**
+
+   - Instalación y configuración de un servidor web en una segunda instancia EC2, accesible solo desde SSH_gate.
    - Publicación de una página con información personalizada.
 
-3. **Análisis de costos:** 
+3. **Análisis de costos:**
+
    - Evaluación de los costos estimados para el despliegue y mantenimiento de ambas instancias EC2.
    - Proyección de costos mensuales y anuales.
 
-4. **Configuración de alertas en CloudWatch:** 
+4. **Configuración de alertas en CloudWatch:**
    - Monitoreo de los gastos a través de CloudWatch y configuración de alertas para controlar el presupuesto de uso en AWS.
 
 ### 💻 Ejemplo de Conexión SSH
@@ -80,19 +88,21 @@ En esta práctica, se implementó una infraestructura web escalable y altamente 
 
 ### 🔹 Actividades Principales
 
-1. **Configuración de instancias EC2:** 
+1. **Configuración de instancias EC2:**
    - Despliegue de servidores web independientes en instancias EC2 con balanceo de carga y configurados con Nginx y Node.js.
-   
 2. **Balanceo de carga con Application Load Balancer (ALB):**
+
    - Configuración de un balanceador de carga que distribuye el tráfico de forma equitativa entre los servidores web.
 
 3. **Escalado automático con Auto Scaling Group (ASG):**
+
    - Creación de un grupo de autoescalado para ajustar dinámicamente el número de instancias EC2 según la demanda.
 
 4. **Despliegue de base de datos relacional (RDS):**
+
    - Configuración de una base de datos MySQL en Amazon RDS accesible desde las instancias EC2 y optimizada para la infraestructura desplegada.
 
-5. **Estimación de costos:** 
+5. **Estimación de costos:**
    - Análisis de costos asociados con el uso de EC2, balanceadores de carga, autoescalado y bases de datos, con proyecciones mensuales y anuales.
 
 ### 💻 Comandos de Ejemplo
@@ -128,12 +138,14 @@ En esta práctica, exploramos el uso de **AWS CloudFormation** para definir y de
 ### 🔹 Actividades Principales
 
 1. **Despliegue básico de EC2 con SSH y servidor web:**
+
    - **Objetivo**: Crear una instancia EC2 accesible mediante SSH y HTTP, que muestre un identificador único (UUID) generado en cada despliegue.
-   - **Implementación**: 
+   - **Implementación**:
      - Creación de una plantilla en YAML que define la instancia EC2, los grupos de seguridad necesarios, y un script de inicialización para configurar Apache y generar la página web con el UUID.
      - **Pruebas de conexión**: Acceso a la instancia a través de SSH y HTTP para verificar la accesibilidad y el contenido de la página.
 
 2. **Despliegue de infraestructura escalable con Balanceador de Carga y Auto Scaling:**
+
    - **Objetivo**: Implementar un balanceador de carga (ALB) y un grupo de autoescalado para distribuir el tráfico entre múltiples instancias EC2, manteniendo la alta disponibilidad y escalabilidad.
    - **Implementación**:
      - Configuración de una VPC personalizada con subredes públicas, reglas de ruteo, e internet gateway para habilitar el acceso desde Internet.
@@ -172,15 +184,73 @@ AWS CloudFormation facilita la gestión de infraestructuras y es una herramienta
 
 ## 4. 🐳 Contenedores
 
-**Manual de actividad práctica 4: Contenedores**
+**Manual de actividad práctica 4: Contenedores en AWS con ECS**
 
-El objetivo de esta práctica es aprender a utilizar contenedores en AWS usando los servicios de ECS. Se recomienda revisar la documentación:
-
-- 📄 [Amazon ECS Developer Guide](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html)
+En esta práctica, exploramos el uso de contenedores en AWS utilizando **Amazon Elastic Container Service (ECS)**. El objetivo principal fue aprender a crear, desplegar y gestionar contenedores Docker en la nube, comparando dos enfoques: **ECS con instancias EC2** y **ECS con Fargate**.
 
 [![ECS](https://img.shields.io/badge/AWS-ECS-9cf?logo=amazon-aws&style=flat-square)](https://aws.amazon.com/ecs/)
 
-*Aquí agregaré más información próximamente...*
+### 🔹 Actividades Principales
+
+1.  **Creación de un contenedor Docker:**
+
+    - Se utilizó una aplicación web sencilla (WordPress) junto con una base de datos MariaDB, empaquetadas en contenedores Docker.
+    - Se creó un `docker-compose.yml` para definir y orquestar los contenedores localmente.
+
+2.  **Creación de un repositorio en ECR:**
+
+    - Se configuró un repositorio privado en **Amazon Elastic Container Registry (ECR)** para almacenar las imágenes Docker.
+    - Se utilizó la AWS CLI para autenticarse en ECR y subir las imágenes de WordPress y MariaDB.
+
+3.  **Despliegue en ECS con EC2:**
+
+    - Se creó un clúster ECS utilizando instancias EC2, lo que proporciona un mayor control sobre la infraestructura subyacente.
+    - Se definió una **Task Definition** que incluía ambos contenedores (WordPress y MariaDB), configurando el modo de red `bridge` para la comunicación entre ellos.
+    - Se creó un **Servicio ECS** para mantener la ejecución continua de la tarea.
+    - Se analizó la arquitectura resultante y se realizó una estimación de costos.
+
+4.  **Despliegue en ECS con Fargate:**
+
+    - Se creó un nuevo clúster ECS utilizando **Fargate**, un motor de cómputo serverless para contenedores.
+    - Se creó una nueva **Task Definition** adaptada a Fargate, utilizando el modo de red `awsvpc`.
+    - Se experimentaron **problemas de conectividad** entre los contenedores dentro de la misma tarea en Fargate. A pesar de la documentación de AWS, WordPress no pudo conectarse a MariaDB.
+    - Se propusieron soluciones alternativas: dividir los contenedores en servicios separados o utilizar un servicio de base de datos gestionado (RDS).
+    - Se compararon las diferencias entre EC2 y Fargate en términos de gestión, flexibilidad, escalabilidad, costo y simplicidad. Se analizó la arquitectura con Fargate y los costos asociados.
+
+5.  **Actividad extra:** Despliegue de un cluster con varios contenedores.
+
+### 💻 Ejemplo de Comandos
+
+- Creación de un repositorio en ECR y subida de imágenes:
+  ```bash
+  aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 491250998585.dkr.ecr.us-east-1.amazonaws.com
+  docker tag wordpress:latest [491250998585.dkr.ecr.us-east-1.amazonaws.com/wordpress:latest](https://www.google.com/search?q=https://491250998585.dkr.ecr.us-east-1.amazonaws.com/wordpress:latest)
+  docker push [491250998585.dkr.ecr.us-east-1.amazonaws.com/wordpress:latest](https://www.google.com/search?q=https://491250998585.dkr.ecr.us-east-1.amazonaws.com/wordpress:latest)
+  ```
+- Creación y ejecución local de contenedores con docker-compose:
+  ```bash
+   docker-compose up
+  ```
+
+### 📊 Diagrama de la Arquitectura (EC2)
+
+![ECS Architecture](P4/img/arquitectura_ecs_con_ec2.png)
+
+### 📊 Diagrama de la Arquitectura (Fargate)
+
+![Fargate Architecture](P4/img/arquitectura_ecs_con_fargate.png)
+
+### 💡 Conclusiones
+
+Esta práctica proporcionó una experiencia práctica en la gestión de contenedores en AWS con ECS. Se aprendió a:
+
+- Empaquetar aplicaciones en contenedores Docker.
+- Utilizar ECR para almacenar y gestionar imágenes Docker.
+- Desplegar contenedores en ECS utilizando tanto instancias EC2 como Fargate.
+- Comprender las diferencias clave entre los dos enfoques de despliegue.
+- Identificar y solucionar problemas de conectividad en Fargate.
+
+La práctica también resaltó la importancia de elegir el enfoque de despliegue adecuado según las necesidades del proyecto, considerando factores como la gestión de la infraestructura, la flexibilidad, la escalabilidad, el costo y la complejidad. Además, se puso de manifiesto la conveniencia de usar servicios administrados como RDS para simplificar la arquitectura.
 
 ---
 
@@ -192,7 +262,7 @@ El objetivo de esta práctica es experimentar con los servicios de colas y event
 
 [![Desacoplamiento](https://img.shields.io/badge/AWS-SQS%20%26%20SNS-red?logo=amazon-aws&style=flat-square)](https://aws.amazon.com/sqs/)
 
-*Aquí agregaré más información próximamente...*
+_Aquí agregaré más información próximamente..._
 
 ---
 
