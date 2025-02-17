@@ -2,7 +2,7 @@
 
 **Asignatura**: Computación en la Nube
 
-**Fecha**: [Fecha de entrega]
+**Fecha**: 20-12-2024
 
 **Autor**: Francisco Javier López-Dufour Morales
 
@@ -22,17 +22,17 @@
   - [Índice](#índice)
   - [1. Introducción](#1-introducción)
   - [2. Objetivos](#2-objetivos)
-  - [3.1. Creación de un contenedor Docker con una aplicación](#31-creación-de-un-contenedor-docker-con-una-aplicación)
-  - [3.2. Creación de un repositorio en ECR y subida del contenedor](#32-creación-de-un-repositorio-en-ecr-y-subida-del-contenedor)
-  - [3.3. Despliegue del contenedor usando ECS](#33-despliegue-del-contenedor-usando-ecs)
-    - [3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2](#331-pasos-para-crear-un-clúster-de-ecs-con-instancias-ec2)
-    - [3.3.2. Arquitectura Final](#332-arquitectura-final)
-    - [3.3.3. Análisis de Costos](#333-análisis-de-costos)
-  - [3.4. Despliegue del contenedor usando Fargate y comparación](#34-despliegue-del-contenedor-usando-fargate-y-comparación)
-    - [3.4.1. Pasos para Desplegar en Fargate](#341-pasos-para-desplegar-en-fargate)
-    - [3.4.2. Comparación entre EC2 y Fargate](#342-comparación-entre-ec2-y-fargate)
-    - [3.4.3. Arquitectura Final con Fargate](#343-arquitectura-final-con-fargate)
-    - [3.4.4. Análisis de Costos](#344-análisis-de-costos)
+    - [3.1. Creación de un contenedor Docker con una aplicación](#31-creación-de-un-contenedor-docker-con-una-aplicación)
+    - [3.2. Creación de un repositorio en ECR y subida del contenedor](#32-creación-de-un-repositorio-en-ecr-y-subida-del-contenedor)
+    - [3.3. Despliegue del contenedor usando ECS](#33-despliegue-del-contenedor-usando-ecs)
+      - [3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2](#331-pasos-para-crear-un-clúster-de-ecs-con-instancias-ec2)
+      - [3.3.2. Arquitectura Final](#332-arquitectura-final)
+      - [3.3.3. Análisis de Costos](#333-análisis-de-costos)
+    - [3.4. Despliegue del contenedor usando Fargate y comparación](#34-despliegue-del-contenedor-usando-fargate-y-comparación)
+      - [3.4.1. Pasos para Desplegar en Fargate](#341-pasos-para-desplegar-en-fargate)
+      - [3.4.2. Comparación entre EC2 y Fargate](#342-comparación-entre-ec2-y-fargate)
+      - [3.4.3. Arquitectura Final con Fargate](#343-arquitectura-final-con-fargate)
+      - [3.4.4. Análisis de Costos](#344-análisis-de-costos)
     - [3.5. Actividad Extra: Despliegue de un cluster con varios contenedores](#35-actividad-extra-despliegue-de-un-cluster-con-varios-contenedores)
   - [4. Conclusiones](#4-conclusiones)
   - [5. Referencias](#5-referencias)
@@ -47,6 +47,13 @@
 
 En esta práctica exploraremos el uso de contenedores en AWS utilizando el servicio Amazon Elastic Container Service (ECS). El objetivo es familiarizarse con la creación y despliegue de contenedores Docker en AWS, gestionando repositorios en ECR y comparando diferentes métodos de despliegue, incluyendo Fargate.
 
+**Tecnologías Utilizadas**:
+
+- **Docker**: Plataforma que permite empaquetar aplicaciones y sus dependencias en contenedores, asegurando que se ejecuten de manera consistente en diferentes entornos.
+- **Amazon ECS**: Servicio de orquestación de contenedores que facilita el despliegue, gestión y escalado de aplicaciones en contenedores en AWS.
+- **Amazon ECR**: Registro de contenedores gestionado que facilita el almacenamiento, gestión y despliegue de imágenes Docker.
+- **AWS Fargate**: Motor de cómputo serverless para contenedores que elimina la necesidad de gestionar servidores, permitiendo ejecutar contenedores directamente.
+
 <div class="page"/>
 
 ## 2. Objetivos
@@ -59,7 +66,7 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 
 <div class="page"/>
 
-## 3.1. Creación de un contenedor Docker con una aplicación
+### 3.1. Creación de un contenedor Docker con una aplicación
 
 > **Objetivo**: Crear un contenedor Docker que contenga una aplicación que permita comprobar su funcionamiento, como por ejemplo una página web sencilla.
 
@@ -104,7 +111,7 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 
 <div class="page"/>
 
-## 3.2. Creación de un repositorio en ECR y subida del contenedor
+### 3.2. Creación de un repositorio en ECR y subida del contenedor
 
 > **Descripción**: Configurar un repositorio en Amazon Elastic Container Registry (ECR) y subir la imagen del contenedor creado en el paso anterior.
 
@@ -179,11 +186,11 @@ En esta práctica exploraremos el uso de contenedores en AWS utilizando el servi
 
 <div class="page"/>
 
-## 3.3. Despliegue del contenedor usando ECS
+### 3.3. Despliegue del contenedor usando ECS
 
 > **Descripción**: Ahora crearemos un clúster en ECS usando instancias EC2, definiendo la tarea y el servicio. Esto proporciona más control sobre la infraestructura subyacente, permitiendo por ejemplo el uso de tipos de instancia específicos y estrategias de escalado personalizadas.
 
-### 3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2
+#### 3.3.1. Pasos para crear un Clúster de ECS con Instancias EC2
 
 1. **Crear un clúster de ECS**:
 
@@ -311,13 +318,17 @@ El servicio mantiene el número de tareas especificado en ejecución, lo que apo
 - Verificar que el grupo de seguridad permita tráfico en el puerto `80`.
 - Ajustar recursos según las necesidades reales, evitando sobrecostes o subdimensionamiento.
 
-### 3.3.2. Arquitectura Final
+<div class="page"/>
 
-<img src="img/arquitectura_ecs_con_ec2.png" alt="ECS Architecture" width="600"/>
+#### 3.3.2. Arquitectura Final
+
+<img src="img/arquitectura_ecs_con_ec2.png" alt="ECS Architecture" width="400"/>
 
 La arquitectura final incluye un clúster de ECS con instancias EC2, una definición de tarea con dos contenedores (WordPress y MariaDB) y un servicio que mantiene una tarea en ejecución. La comunicación entre los contenedores se realiza a través de la red interna de ECS.
 
-### 3.3.3. Análisis de Costos
+<div class="page"/>
+
+#### 3.3.3. Análisis de Costos
 
 <img src="img/ecs-costs.png" alt="ECS Costs" width="600"/>
 
@@ -335,7 +346,7 @@ Los costos principales se dividen entre instancias EC2 ($16.86 USD/mes), almacen
 
 <div class="page"/>
 
-## 3.4. Despliegue del contenedor usando Fargate y comparación
+### 3.4. Despliegue del contenedor usando Fargate y comparación
 
 > **Descripción**: Desplegar la misma aplicación (WordPress y MariaDB) en AWS ECS, pero empleando el tipo de lanzamiento Fargate en lugar de EC2. Esto facilitará la comparación entre ambas opciones, resaltando las diferencias en la gestión de infraestructura, costos, escalabilidad y simplicidad de la operación.
 
@@ -353,16 +364,16 @@ Los costos principales se dividen entre instancias EC2 ($16.86 USD/mes), almacen
 
 - Con Fargate se paga por tiempo de cómputo y recursos asignados (vCPU y RAM) a las tareas, no por la infraestructura persistente como en EC2. Ajustar adecuadamente la CPU y la memoria asignadas a la `Task Definition` evitará sobrecostos.
 
-### 3.4.1. Pasos para Desplegar en Fargate
+#### 3.4.1. Pasos para Desplegar en Fargate
 
 1. **Crear un nuevo Clúster de ECS**:
 
-- Acceder a la consola de ECS.
-- Configuración del Cluster
-  - Nombre: `wordpress-fargate-cluster`.
-- Infraestructura
-  - Tipo de lanzamiento: `FARGATE`.
-- Monitoreo, Cifrado y Etiquetas: Mantenemos la configuración por defecto.
+   - Acceder a la consola de ECS.
+   - Configuración del Cluster
+     - Nombre: `wordpress-fargate-cluster`.
+   - Infraestructura
+     - Tipo de lanzamiento: `FARGATE`.
+   - Monitoreo, Cifrado y Etiquetas: Mantenemos la configuración por defecto.
 
 2. **Configurar la Task Definition para Fargate**:
 
@@ -469,27 +480,28 @@ En teoría, al usar el modo de red `awsvpc`, los contenedores de una misma tarea
    - Ventaja: Simplifica la configuración, mejora la disponibilidad y permite un escalado más eficiente.
    - Desventaja: Puede ser más costoso en escenarios pequeños.
 
+#### 3.4.2. Comparación entre EC2 y Fargate
+
+| Característica                 | EC2                                                        | Fargate                                                 |
+| ------------------------------ | ---------------------------------------------------------- | ------------------------------------------------------- |
+| **Gestión de Infraestructura** | Requiere aprovisionar y gestionar instancias manualmente.  | Totalmente serverless, AWS gestiona la infraestructura. |
+| **Flexibilidad**               | Alta, permite elegir tipos de instancias específicas.      | Limitada a las configuraciones disponibles en Fargate.  |
+| **Escalabilidad**              | Puede configurarse manualmente o mediante Auto Scaling.    | Escala automáticamente según la carga de trabajo.       |
+| **Costo**                      | Menor costo en cargas de trabajo constantes y predecibles. | Puede ser más caro en cargas pequeñas o irregulares.    |
+| **Simplicidad**                | Requiere conocimientos de gestión de infraestructura.      | Más sencillo, adecuado para usuarios nuevos.            |
+| **Disponibilidad**             | Depende de la configuración de las instancias y la red.    | Alta disponibilidad integrada por defecto.              |
+
 <div class="page"/>
 
-### 3.4.2. Comparación entre EC2 y Fargate
+#### 3.4.3. Arquitectura Final con Fargate
 
-| Característica              | EC2                                | Fargate                          |
-|-----------------------------|------------------------------------|----------------------------------|
-| **Gestión de Infraestructura** | Requiere aprovisionar y gestionar instancias manualmente. | Totalmente serverless, AWS gestiona la infraestructura. |
-| **Flexibilidad**            | Alta, permite elegir tipos de instancias específicas. | Limitada a las configuraciones disponibles en Fargate. |
-| **Escalabilidad**           | Puede configurarse manualmente o mediante Auto Scaling. | Escala automáticamente según la carga de trabajo. |
-| **Costo**                   | Menor costo en cargas de trabajo constantes y predecibles. | Puede ser más caro en cargas pequeñas o irregulares. |
-| **Simplicidad**             | Requiere conocimientos de gestión de infraestructura. | Más sencillo, adecuado para usuarios nuevos. |
-| **Disponibilidad**          | Depende de la configuración de las instancias y la red. | Alta disponibilidad integrada por defecto. |
-
-### 3.4.3. Arquitectura Final con Fargate
-
-<img src="img/arquitectura_ecs_con_fargate.png" alt="Fargate Architecture" width="600"/>
+<img src="img/arquitectura_ecs_con_fargate.png" alt="Fargate Architecture" width="400"/>
 
 La arquitectura final con Fargate incluye un clúster de ECS con tareas ejecutadas en el servicio Fargate, sin necesidad de gestionar instancias EC2. Aunque Fargate ofrece una solución serverless y simplificada, puede presentar desafíos en la comunicación entre contenedores dentro de la misma tarea.
 
-### 3.4.4. Análisis de Costos
+<div class="page"/>
 
+#### 3.4.4. Análisis de Costos
 
 | Servicio                                    | Costo Mensual (USD) | Costo Anual (USD)     |
 | ------------------------------------------- | ------------------- | --------------------- |
@@ -504,6 +516,8 @@ La arquitectura final con Fargate incluye un clúster de ECS con tareas ejecutad
 
 - **EC2** es más económico en configuraciones predecibles y constantes, con mayor flexibilidad para personalizar los recursos.
 - **Fargate** elimina la necesidad de gestionar infraestructura, pero tiene un costo mayor debido al modelo de pago por recursos asignados.
+
+<div class="page"/>
 
 ### 3.5. Actividad Extra: Despliegue de un cluster con varios contenedores
 
@@ -526,16 +540,15 @@ En esta actividad se realizó el despliegue de un clúster con múltiples conten
 
 En esta práctica se ha demostrado el proceso completo de empaquetar una aplicación en contenedores utilizando Docker, alojar las imágenes resultantes en el registro privado de Amazon ECR y desplegarlas en AWS ECS. La experiencia ha permitido comparar dos modos de despliegue distintos: el uso de instancias EC2 para el clúster y la opción serverless que ofrece Fargate.
 
-Como resultado, se han obtenido las siguientes conclusiones básicas:
+Como resultado, la práctica ha proporcionado una serie de aprendizajes y consideraciones:
 
-- **Flujo de trabajo consolidado**: La práctica brinda una visión global del ciclo de vida de los contenedores en la nube, desde la construcción local de la imagen Docker hasta su almacenamiento en ECR y posterior despliegue en ECS.
+- **Aprendizaje de Orquestación de Contenedores**: La práctica proporcionó una comprensión sólida sobre cómo orquestar contenedores utilizando Amazon ECS, gestionando tanto la infraestructura subyacente como las configuraciones serverless.
 
-- **Facilidad con ECS y ECR**: AWS ECS simplifica el proceso de orquestación y escalado de contenedores al permitir definir tareas, servicios y clústeres de forma centralizada. ECR, por su parte, ofrece un repositorio privado y seguro para las imágenes.
+- **Impacto de las Decisiones de Despliegue**: Al comparar EC2 y Fargate, se evidenció cómo las decisiones de despliegue afectan no solo los costos, sino también la flexibilidad y la carga operativa. Esto es importante para seleccionar la mejor solución según los requisitos específicos de cada proyecto.
 
-**Comparación entre EC2 y Fargate**:
+- **Desafíos Encontrados**: La dificultad para la comunicación entre contenedores en Fargate resaltó la importancia de comprender las configuraciones de red al trabajar con servicios serverless, lo que ayudará en futuras implementaciones a evitar o resolver problemas similares.
 
-- **EC2**: Requiere gestionar la infraestructura subyacente (instancias, escalado, mantenimiento), pero ofrece mayor flexibilidad y control sobre los recursos.
-- **Fargate**: Facilita el despliegue sin gestionar servidores, permitiendo centrarse exclusivamente en la aplicación. Sin embargo, puede presentar dificultades en la comunicación entre contenedores dentro de la misma tarea y, en ocasiones, resultar más costoso dependiendo de la carga de trabajo.
+- **Recomendaciones para Futuros Proyectos**: Considerar el uso de servicios gestionados adicionales, como Amazon RDS para bases de datos, puede simplificar la arquitectura y mejorar la escalabilidad y disponibilidad de las aplicaciones.
 
 <div class="page"/>
 
