@@ -26,7 +26,11 @@
     - [📊 Diagrama de la Arquitectura (EC2)](#-diagrama-de-la-arquitectura-ec2)
     - [📊 Diagrama de la Arquitectura (Fargate)](#-diagrama-de-la-arquitectura-fargate)
     - [💡 Conclusiones](#-conclusiones-1)
-  - [5. 🔄 Desacoplamiento](#5--desacoplamiento)
+  - [5. 🔄 Desacoplamiento con Colas y Eventos](#5--desacoplamiento-con-colas-y-eventos)
+    - [🔹 Actividades Principales](#-actividades-principales-4)
+    - [💻 Ejemplo de Flujo de Ejecución](#-ejemplo-de-flujo-de-ejecución)
+    - [📊 Diagrama de la Arquitectura](#-diagrama-de-la-arquitectura-1)
+    - [💡 Conclusiones](#-conclusiones-2)
   - [🌟 Recursos Adicionales](#-recursos-adicionales)
   - [✉️ Contacto](#️-contacto)
 
@@ -254,15 +258,55 @@ La práctica también resaltó la importancia de elegir el enfoque de despliegue
 
 ---
 
-## 5. 🔄 Desacoplamiento
+## 5. 🔄 Desacoplamiento con Colas y Eventos
 
-**Manual de actividad práctica 5: Desacoplamiento**
+**Manual de actividad práctica 5: Desacoplamiento con Colas y Eventos en AWS**
 
-El objetivo de esta práctica es experimentar con los servicios de colas y eventos de AWS para desacoplar una aplicación monolítica en un conjunto de microservicios escalable.
+En esta práctica, transformamos una aplicación monolítica en una arquitectura de microservicios desacoplada utilizando **Amazon SQS (Simple Queue Service)** y **Amazon SNS (Simple Notification Service)**. El objetivo fue mejorar la escalabilidad, la tolerancia a fallos y la modularidad de la aplicación.
 
 [![Desacoplamiento](https://img.shields.io/badge/AWS-SQS%20%26%20SNS-red?logo=amazon-aws&style=flat-square)](https://aws.amazon.com/sqs/)
 
-_Aquí agregaré más información próximamente..._
+### 🔹 Actividades Principales
+
+1.  **Implementación de la Aplicación Monolítica:**
+    *   Se desarrolló una aplicación en Python con tres funciones (`fA`, `fB`, `fC`) que se ejecutaban secuencialmente.  Cada función simulaba un proceso con un retardo (`sleep`).
+    *   Se desplegó la aplicación monolítica en una instancia EC2 utilizando una plantilla de CloudFormation.
+
+2.  **Desacoplamiento en Microservicios:**
+    *   Se dividió la aplicación monolítica en tres microservicios independientes (`fA`, `fB`, `fC`), cada uno responsable de una función específica.
+    *   Se crearon dos colas SQS (`QueueAtoB` y `QueueBtoC`) para facilitar la comunicación asíncrona entre los microservicios.
+    *   `fA` se configuró como un servicio web (Flask) que, al recibir una petición, enviaba un mensaje a `QueueAtoB`.
+    *   `fB` y `fC` se configuraron como *workers* que realizaban *polling* de sus respectivas colas, procesaban los mensajes y enviaban el resultado a la siguiente cola (o mostraban el resultado final en el caso de `fC`).
+    *   Se desplegaron los tres microservicios en instancias EC2 independientes, utilizando una plantilla de CloudFormation que también creaba las colas SQS. 
+
+3.  **Integración con Amazon SNS:**
+    *   Se creó un *topic* de SNS (`TopicAtoB`).
+    *   Se configuró `fA` para suscribirse al *topic* SNS, de modo que la publicación de un mensaje en el *topic* desencadenara el flujo de procesamiento a través de los microservicios.  Esto añadió una capa de abstracción y permitió que otros servicios o eventos pudieran iniciar el proceso.
+    *   Se modificó la plantilla de CloudFormation y el código de `fA` para soportar la suscripción y confirmación con SNS.
+
+### 💻 Ejemplo de Flujo de Ejecución
+
+1.  Se publica un mensaje en el *topic* SNS (o se envía una petición HTTP directamente a `fA`).
+2.  `fA` recibe el mensaje, lo procesa (añade "A") y envía el resultado a `QueueAtoB`.
+3.  `fB` recibe el mensaje de `QueueAtoB`, lo procesa (añade "B") y envía el resultado a `QueueBtoC`.
+4.  `fC` recibe el mensaje de `QueueBtoC`, lo procesa (añade "C") y muestra el resultado final.
+
+### 📊 Diagrama de la Arquitectura
+
+![Arquitectura Desacoplada](P5/img/arquitectura_desacoplada.png)
+
+### 💡 Conclusiones
+
+Esta práctica demostró cómo el uso de SQS y SNS permite construir arquitecturas de microservicios desacopladas, escalables y resilientes en AWS.  Los principales beneficios obtenidos fueron:
+
+*   **Modularidad:** Cada microservicio se pudo desarrollar, desplegar y escalar de forma independiente.
+*   **Tolerancia a Fallos:** Si un microservicio fallaba, los demás podían seguir funcionando gracias a la comunicación asíncrona a través de las colas.
+*   **Escalabilidad:** Cada microservicio se puede escalar horizontalmente según sus necesidades, sin afectar a los demás.
+*   **Flexibilidad:** Se puede integrar fácilmente con otros servicios y eventos a través de SNS.
+
+La decisión de utilizar EC2 para el despliegue, en lugar de funciones Lambda, se basó en la necesidad de tener un mayor control sobre el entorno de ejecución y en la naturaleza continua del procesamiento de `fB` y `fC` (que realizan *polling* constante). Para escenarios con cargas de trabajo más variables o intermitentes, Lambda podría ser una alternativa más económica. Se realizó un análisis de costos que tuvo en cuenta el uso de instancias EC2, colas SQS, SNS y la transferencia de datos.
+
+Se aprendió a utilizar SQS y SNS de forma efectiva, a configurar suscripciones HTTP a topics SNS, y a gestionar la confirmación de suscripciones. La experiencia adquirida es directamente aplicable al diseño y desarrollo de aplicaciones en la nube modernas y escalables.
 
 ---
 
